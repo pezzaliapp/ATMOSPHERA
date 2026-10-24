@@ -12,9 +12,10 @@ import { stormAt } from './data/storm';
 import { createCloudSequence } from './layers/cloud-sequence';
 import { createLabelLayer } from './layers/labels';
 import { registerServiceWorker } from './pwa/register';
-import { createHud, showFatalError, type StoryCaptionView } from './ui/hud';
+import { createHud, showFatalError, type RenderView, type StoryCaptionView } from './ui/hud';
 import { t } from './ui/i18n';
 import { createThemeController } from './ui/theme';
+import { createVolumeView, volumeSupported } from './volume/volume-view';
 
 const app = document.getElementById('app')!;
 const canvas = document.getElementById('globe') as HTMLCanvasElement;
@@ -76,6 +77,12 @@ async function start(): Promise<void> {
 
   const scene = createEventScene(engine, event, sequence, playback.time);
   const trackLayer = scene.track;
+  // EXPLORE: immagini satellitari originali o volume ricostruito (creato al primo uso).
+  const volumeAvailable = volumeSupported(engine);
+  const volumeView = createVolumeView(engine, scene, event, trackLayer.group);
+  let renderView: RenderView = 'satellite';
+  // Solo in sviluppo: misure del volume per le verifiche di prestazione (assente dalla build).
+  if (import.meta.env.DEV) Object.assign(window, { __volume: volumeView });
 
   // Camera: inquadratura diversa per schermi verticali.
   const portrait = () => canvas.clientWidth < canvas.clientHeight;
@@ -108,7 +115,15 @@ async function start(): Promise<void> {
   const applyRelief = (mode: PlaybackMode) => {
     const value = mode === 'explore' ? exploreExaggeration : manifest.cloudExaggeration;
     scene.setExaggeration(value);
+    volumeView.setExaggeration(value);
     hud.setExaggeration(value);
+  };
+  /** Il volume esiste solo in EXPLORE: STORY e REPLAY restano sempre con le immagini satellitari. */
+  const applyRender = (mode: PlaybackMode) => {
+    const volume = mode === 'explore' && renderView === 'volume' && volumeAvailable;
+    if (volume) volumeView.enable();
+    else volumeView.disable();
+    hud.setRender(volume ? 'volume' : 'satellite');
   };
   /** Dimensione di un pixel dei dati satellitari, in km (righe della griglia albedo). */
   const b = event.index.bounds;
@@ -155,6 +170,7 @@ async function start(): Promise<void> {
       hud.setViewpoint(null);
     }
     applyRelief(mode);
+    applyRender(mode);
     if (changed && announce) hud.announceMode(mode);
     if (!CAPTURE) history.replaceState(null, '', formatRoute({ mode, eventId: manifest.id }));
     engine.invalidate();
@@ -198,9 +214,13 @@ async function start(): Promise<void> {
       },
       onThemeCycle: () => theme.cycle(),
       onLayer: (layer, visible) => {
-        if (layer === 'clouds') scene.setCloudsVisible(visible);
-        else if (layer === 'track') trackLayer.setVisible(visible);
-        else labels.setVisible(visible);
+        if (layer === 'clouds') {
+          scene.setCloudsVisible(visible);
+          volumeView.setCloudsVisible(visible);
+        } else if (layer === 'track') {
+          trackLayer.setVisible(visible);
+          volumeView.setOverlayVisible(visible);
+        } else labels.setVisible(visible);
         engine.invalidate();
       },
       onMode: setMode,
@@ -240,6 +260,16 @@ async function start(): Promise<void> {
         rig.flyTo({ heading: 0 }, 900);
         engine.invalidate();
       },
+      onRender: (view) => {
+        if (view === 'volume' && !volumeAvailable) return;
+        const changed = view !== renderView;
+        renderView = view;
+        // Istante, camera e rilievo restano quelli correnti: cambia solo la rappresentazione.
+        applyRender(playback.mode);
+        syncScene(performance.now());
+        if (changed) hud.announceRender(view);
+        engine.invalidate();
+      },
     },
     {
       ...manifest,
@@ -247,6 +277,7 @@ async function start(): Promise<void> {
       exaggeration: manifest.cloudExaggeration,
       satellite: manifest.satellite.name,
       resolutionKm: dataPixelKm,
+      volumeAvailable,
     },
     track,
     { start: new Date(times[0]!), end: new Date(times.at(-1)!), observations: times.map((ms) => new Date(ms)) },
@@ -323,6 +354,7 @@ async function start(): Promise<void> {
     const smoothing = playback.mode !== 'story' && !playback.playing ? 0 : 1;
     if (!sequence.setTime(playback.time, smoothing)) return false;
     scene.setSun(time);
+    volumeView.update(playback.time, smoothing);
     trackLayer.setTime(time);
     const minute = Math.floor(playback.time / 60_000);
     if (minute !== lastStormMinute) {
@@ -385,9 +417,11 @@ async function start(): Promise<void> {
       }
       hud.setHeading(rig.state.heading);
       hud.setDetailLimit(playback.mode === 'explore' && magnification() > MAX_MAGNIFICATION);
-      return advanced || moved || playback.playing || resume !== null;
+      return advanced || moved || playback.playing || resume !== null || volumeView.wantsFrame;
     });
   }
+  // Il volume si compone sopra la scena appena disegnata, prima delle etichette HTML.
+  engine.onAfterRender(() => volumeView.render());
   engine.onAfterRender(() =>
     labels.update(engine.camera, canvas.clientWidth, canvas.clientHeight, rig.state.distance, hud.obstacles()),
   );

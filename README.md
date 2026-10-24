@@ -13,7 +13,14 @@ tramonto sul Golfo del Messico), durante l'intensificazione fino alla categoria 
 - **STORY**: racconto accelerato di 24 secondi con regia della camera, all'apertura.
 - **EXPLORE**: camera libera sulla stessa scena, con la timeline: seguire l'occhio, inquadrature
   (sopra l'occhio, parete, intero uragano, come il satellite, orizzonte), rilievo ×1 o ×2,
-  bussola, doppio clic per centrare, tastiera (frecce, + e −, F).
+  bussola, doppio clic per centrare, tastiera (frecce, + e −, F). Due visualizzazioni, con la
+  stessa camera e lo stesso istante:
+  - **Satellite**: le immagini GOES-16 originali, con il massimo dettaglio disponibile;
+  - **Volume 3D**: un volume ricostruito dalle stesse osservazioni (spessore ottico dall'albedo,
+    quota della sommità dalla temperatura), attraversato con ray marching e illuminato dal Sole
+    di quell'istante, con ombre proprie e proiettate. È una ricostruzione, non una misura
+    tridimensionale: il satellite vede solo la sommità delle nubi. Risoluzione adattiva al costo
+    misurato sulla GPU, profilo leggero sui telefoni (`src/volume/`).
 - **REPLAY**: riproduzione scientifica a 5, 10, 20 o 30 minuti al secondo, con l'ora reale
   di ogni osservazione e l'indicazione dei fotogrammi interpolati.
 - **LIVE** e altri eventi: in sviluppo, non ancora disponibili.

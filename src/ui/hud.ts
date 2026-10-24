@@ -34,7 +34,12 @@ export interface HudActions {
   onFollow: () => void;
   onExaggeration: (value: number) => void;
   onNorth: () => void;
+  /** EXPLORE: immagini satellitari originali o volume ricostruito. */
+  onRender: (view: RenderView) => void;
 }
+
+/** Visualizzazione delle nuvole in EXPLORE. */
+export type RenderView = 'satellite' | 'volume';
 
 export interface SequenceRange {
   start: Date;
@@ -73,6 +78,8 @@ export interface EventInfo {
   satellite: string;
   /** Dimensione di un pixel dei dati satellitari, in km. */
   resolutionKm: number;
+  /** Il dispositivo può mostrare il Volume 3D. */
+  volumeAvailable: boolean;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -271,8 +278,19 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
     wrap.append(input, el('span', undefined, label));
     toggles.append(wrap);
   }
+  const reconstructedRow = legendRow('reconstructed', t.legendReconstructed);
   const illustrativeRow = legendRow('illustrative', t.legendIllustrative.replace('{x}', String(event.exaggeration)));
-  legendBody.append(legendRow('observed', t.legendObserved), legendRow('reconstructed', t.legendReconstructed), illustrativeRow, toggles);
+  legendBody.append(legendRow('observed', t.legendObserved), reconstructedRow, illustrativeRow, toggles);
+  // La legenda descrive la visualizzazione in uso (immagini satellitari o volume ricostruito).
+  let legendState: { render: RenderView; exaggeration: number } = { render: 'satellite', exaggeration: event.exaggeration };
+  const updateLegend = () => {
+    const volume = legendState.render === 'volume';
+    reconstructedRow.lastElementChild!.textContent = volume ? t.legendReconstructedVolume : t.legendReconstructed;
+    illustrativeRow.lastElementChild!.textContent = (volume ? t.legendIllustrativeVolume : t.legendIllustrative).replace(
+      '{x}',
+      String(legendState.exaggeration),
+    );
+  };
   legend.append(summary, legendBody);
 
   // Riproduzione: comandi, istante rappresentato, pressione al centro e cursore.
@@ -388,6 +406,28 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
     if (viewSelect.value) actions.onViewpoint(viewSelect.value as ViewpointId);
   });
   viewSelectWrap.append(icon('camera'), viewSelect);
+  // SATELLITE / VOLUME 3D: stessa camera e stesso istante, due rappresentazioni delle nuvole.
+  const render = el('div', 'explore__group explore__render');
+  render.setAttribute('role', 'group');
+  render.setAttribute('aria-label', t.renderMode);
+  const renderButtons = new Map<RenderView, HTMLButtonElement>();
+  for (const [view, label, hint, iconName] of [
+    ['satellite', t.renderSatellite, t.renderSatelliteHint, 'satellite'],
+    ['volume', t.renderVolume, event.volumeAvailable ? t.renderVolumeHint : t.volumeUnavailable, 'cube'],
+  ] as const) {
+    const b = el('button', 'explore__chip explore__render-chip');
+    b.type = 'button';
+    b.title = hint;
+    b.setAttribute('aria-pressed', String(view === 'satellite'));
+    b.append(icon(iconName), el('span', undefined, label));
+    if (view === 'volume') {
+      b.append(badge('reconstructed'));
+      b.disabled = !event.volumeAvailable;
+    }
+    b.addEventListener('click', () => actions.onRender(view));
+    render.append(b);
+    renderButtons.set(view, b);
+  }
   const relief = el('div', 'explore__group explore__relief');
   relief.setAttribute('role', 'group');
   relief.setAttribute('aria-label', t.relief);
@@ -410,14 +450,18 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   const needle = icon('north');
   compass.append(needle);
   compass.addEventListener('click', actions.onNorth);
-  exploreBar.append(viewSelectWrap, followButton, views, relief, compass);
+  exploreBar.append(render, viewSelectWrap, followButton, views, relief, compass);
   const detail = el(
     'p',
     'explore__note',
     t.detailLimit.replace('{sat}', event.satellite).replace('{km}', event.resolutionKm.toFixed(1).replace('.', ',')),
   );
   detail.hidden = true;
-  explore.append(detail, exploreBar);
+  // Nel volume una nota resta sempre visibile: è una ricostruzione, non una misura 3D.
+  const volumeNote = el('p', 'explore__note explore__note--volume');
+  volumeNote.append(badge('reconstructed'), el('span', undefined, t.volumeNote.replace('{sat}', event.satellite)));
+  volumeNote.hidden = true;
+  explore.append(detail, volumeNote, exploreBar);
 
   // Comandi di navigazione
   const nav = el('nav', 'view-controls');
@@ -597,7 +641,19 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
     },
     setExaggeration(value: number) {
       reliefButtons.forEach((b, k) => b.setAttribute('aria-pressed', String(EXAGGERATIONS[k] === value)));
-      illustrativeRow.lastElementChild!.textContent = t.legendIllustrative.replace('{x}', String(value));
+      legendState = { ...legendState, exaggeration: value };
+      updateLegend();
+    },
+    /** Visualizzazione delle nuvole in uso: pulsanti, nota sul volume, legenda. */
+    setRender(view: RenderView) {
+      renderButtons.forEach((b, k) => b.setAttribute('aria-pressed', String(k === view)));
+      volumeNote.hidden = view !== 'volume';
+      root.dataset.render = view;
+      legendState = { ...legendState, render: view };
+      updateLegend();
+    },
+    announceRender(view: RenderView) {
+      this.showToast((view === 'volume' ? t.announceVolume : t.announceSatellite).replace('{sat}', event.satellite));
     },
     /** Bussola: l'ago punta al nord geografico sullo schermo. */
     setHeading(degrees: number) {

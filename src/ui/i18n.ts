@@ -95,6 +95,19 @@ export const it = {
   north: 'Orienta a nord',
   detailLimit: 'Ingrandimento oltre la risoluzione dei dati ({sat}, circa {km} km per pixel): i dettagli più piccoli non sono osservati',
   viewpointFree: 'Inquadratura libera',
+  renderMode: 'Visualizzazione',
+  renderSatellite: 'Satellite',
+  renderSatelliteHint: 'Immagini GOES-16 originali, con il massimo dettaglio disponibile',
+  renderVolume: 'Volume 3D',
+  renderVolumeHint: 'Volume ricostruito dalle osservazioni satellitari: profondità, ombre e luce del Sole. Non è una misura tridimensionale',
+  volumeUnavailable: 'Volume 3D non disponibile su questo dispositivo (servono texture in virgola mobile WebGL 2)',
+  volumeNote: 'Volume 3D ricostruito dalle osservazioni {sat}, non misurato in 3D',
+  announceVolume: 'VOLUME 3D · ricostruzione dalle osservazioni {sat}: il satellite vede solo la sommità delle nubi.',
+  announceSatellite: 'SATELLITE · immagini {sat} originali, con il massimo dettaglio disponibile.',
+  legendReconstructedVolume:
+    'Volume 3D: spessore ottico delle nubi dall’albedo visibile, quota della sommità dalla temperatura (corretta per la parallasse), valori tra due punti della traccia.',
+  legendIllustrativeVolume:
+    'Distribuzione delle nubi sotto la sommità (il satellite non la vede), diffusione multipla della luce, fotogrammi tra due scansioni, esagerazione verticale ×{x}, foschia, alone, stelle.',
   announceStory: 'STORY · racconto accelerato con regia della camera.',
   announceExplore: 'EXPLORE · camera libera: inquadrature, segui l’occhio, rilievo.',
   announceReplay: 'REPLAY · riproduzione scientifica: orari reali delle osservazioni {sat}, velocità regolabile.',
@@ -105,7 +118,7 @@ export const it = {
     'ATMOSPHERA è un progetto originale di Alessandro Pezzali, nell’ecosistema PezzaliAPP, dedicato alla visualizzazione immersiva dell’atmosfera terrestre. Questa Preview Beta ricostruisce undici ore dell’uragano Milton, il 7 ottobre 2024, dall’alba al tramonto sul Golfo del Messico, durante l’intensificazione fino alla categoria 5.',
   honestyTitle: 'Dati e ricostruzioni',
   honestyBody:
-    'Le nuvole sono immagini reali del satellite GOES-16, una ogni 20 minuti, riproiettate sulla regione. Tra due immagini il movimento è un’interpolazione illustrativa lungo il moto stimato dalle immagini stesse: nessuna rotazione o dettaglio inventato. L’aspetto tridimensionale è una ricostruzione: la quota delle nubi è stimata dalla loro temperatura e amplificata per renderla visibile. Ogni grandezza mostrata riporta se è osservata, ricostruita o illustrativa.',
+    'Le nuvole sono immagini reali del satellite GOES-16, una ogni 20 minuti, riproiettate sulla regione. Tra due immagini il movimento è un’interpolazione illustrativa lungo il moto stimato dalle immagini stesse: nessuna rotazione o dettaglio inventato. L’aspetto tridimensionale è una ricostruzione: la quota delle nubi è stimata dalla loro temperatura e amplificata per renderla visibile. In EXPLORE la visualizzazione Volume 3D ricostruisce un volume dalle stesse osservazioni (spessore ottico dall’albedo, quota dalla temperatura) e lo illumina con il Sole di quell’istante: il satellite vede solo la sommità delle nubi, quindi l’interno del volume non è osservato. Ogni grandezza mostrata riporta se è osservata, ricostruita o illustrativa.',
   privacyTitle: 'Privacy',
   privacyBody:
     'Nessun account, nessun cookie, nessun tracciamento. L’app è statica e funziona interamente nel browser; le preferenze (tema) restano sul tuo dispositivo.',

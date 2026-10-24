@@ -18,6 +18,8 @@ const PATHS = {
   compass: '<circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
   target: '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>',
   north: '<path d="M12 3.5l4 9h-8z" fill="currentColor" stroke="none"/><path d="M12 20.5l-4-8h8z"/>',
+  satellite: '<path d="M9.5 9.5l5 5M8 11l5 5M11 8l5 5"/><path d="M4 9l5-5 2.5 2.5-5 5zM12.5 17.5l5-5L20 15l-5 5z"/>',
+  cube: '<path d="M12 3.5l7.5 4.2v8.6L12 20.5l-7.5-4.2V7.7z"/><path d="M4.5 7.7L12 12l7.5-4.3M12 12v8.5"/>',
   'theme-auto': '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/>',
 } as const;
 
