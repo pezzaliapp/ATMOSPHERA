@@ -1,0 +1,46 @@
+{
+  "observed": "2024-10-07T20:01:17.3Z",
+  "bounds": {
+    "west": -100.0,
+    "south": 16.0,
+    "east": -68.0,
+    "north": 36.0
+  },
+  "size": [
+    2560,
+    1600
+  ],
+  "resolutionDeg": 0.0125,
+  "encoding": {
+    "clouds-albedo.jpg": {
+      "quantity": "albedo apparente (riflettanza C02 / cos zenit solare)",
+      "min": 0,
+      "max": 1.0
+    },
+    "clouds-bt.jpg": {
+      "quantity": "temperatura di brillanza C13",
+      "unit": "K",
+      "min": 180.0,
+      "max": 310.0
+    }
+  },
+  "validFraction": 1.0,
+  "source": {
+    "satellite": "G16",
+    "sector": "CONUS",
+    "product": "ABI L2 Cloud and Moisture Imagery",
+    "files": [
+      {
+        "dataset": "OR_ABI-L2-CMIPC-M6C02_G16_s20242812001173_e20242812003546_c20242812004050.nc",
+        "sha256": "ac5a40339477c6c89cbaabf6ef903be5ad2dafe834198715d1a580a2665053f1",
+        "start": "2024-10-07T20:01:17.3Z"
+      },
+      {
+        "dataset": "OR_ABI-L2-CMIPC-M6C13_G16_s20242812001173_e20242812003558_c20242812004062.nc",
+        "sha256": "82e59ad531355f5ccc6ae1b29f075af4a09888da07b25d64b1c09be793d2a982",
+        "start": "2024-10-07T20:01:17.3Z"
+      }
+    ],
+    "archive": "NOAA Open Data Dissemination (NODD) — s3://noaa-goes16"
+  }
+}

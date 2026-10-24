@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>ATMOSPHERA</title>
+    <meta name="description" content="Eventi meteorologici in 3D da dati satellitari reali: uragano Milton, ottobre 2024. Un progetto PezzaliAPP." />
+    <meta name="author" content="Alessandro Pezzali" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#070b14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ATMOSPHERA" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="globe" aria-label="Scena 3D interattiva dell’uragano Milton sul Golfo del Messico" role="img"></canvas>
+      <div id="loader" class="loader" role="status" aria-live="polite">
+        <div class="loader__ring" aria-hidden="true"></div>
+        <p class="loader__text">Caricamento della scena…</p>
+        <div class="loader__bar" aria-hidden="true"><span></span></div>
+      </div>
+    </div>
+    <noscript>
+      <p class="noscript">ATMOSPHERA richiede JavaScript attivo per visualizzare la scena 3D.</p>
+    </noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

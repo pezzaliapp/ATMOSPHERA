@@ -1,0 +1,347 @@
+{
+ "id": "AL142024",
+ "name": "Milton",
+ "source": "NOAA NHC HURDAT2 — hurdat2-1851-2025-092326.txt (sha256 75202780ce56c8458f16fbef5fb8a026b99b00878dbb95c458211b3e6ef125b4)",
+ "points": [
+  {
+   "time": "2024-10-04T18:00:00Z",
+   "record": "",
+   "status": "LO",
+   "lat": 21,
+   "lon": -94.6,
+   "windKt": 30,
+   "pressureHpa": 1009,
+   "rmwNm": 60
+  },
+  {
+   "time": "2024-10-05T00:00:00Z",
+   "record": "",
+   "status": "LO",
+   "lat": 20.8,
+   "lon": -95.2,
+   "windKt": 30,
+   "pressureHpa": 1008,
+   "rmwNm": 60
+  },
+  {
+   "time": "2024-10-05T06:00:00Z",
+   "record": "",
+   "status": "LO",
+   "lat": 21.4,
+   "lon": -95.4,
+   "windKt": 30,
+   "pressureHpa": 1008,
+   "rmwNm": 50
+  },
+  {
+   "time": "2024-10-05T12:00:00Z",
+   "record": "",
+   "status": "TD",
+   "lat": 22,
+   "lon": -95.5,
+   "windKt": 30,
+   "pressureHpa": 1008,
+   "rmwNm": 30
+  },
+  {
+   "time": "2024-10-05T18:00:00Z",
+   "record": "",
+   "status": "TS",
+   "lat": 22.5,
+   "lon": -95.5,
+   "windKt": 35,
+   "pressureHpa": 1006,
+   "rmwNm": 20
+  },
+  {
+   "time": "2024-10-06T00:00:00Z",
+   "record": "",
+   "status": "TS",
+   "lat": 22.7,
+   "lon": -95.5,
+   "windKt": 35,
+   "pressureHpa": 1004,
+   "rmwNm": 20
+  },
+  {
+   "time": "2024-10-06T06:00:00Z",
+   "record": "",
+   "status": "TS",
+   "lat": 22.6,
+   "lon": -95.2,
+   "windKt": 45,
+   "pressureHpa": 999,
+   "rmwNm": 20
+  },
+  {
+   "time": "2024-10-06T12:00:00Z",
+   "record": "",
+   "status": "TS",
+   "lat": 22.5,
+   "lon": -94.8,
+   "windKt": 55,
+   "pressureHpa": 991,
+   "rmwNm": 20
+  },
+  {
+   "time": "2024-10-06T18:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 22.5,
+   "lon": -94.1,
+   "windKt": 70,
+   "pressureHpa": 986,
+   "rmwNm": 15
+  },
+  {
+   "time": "2024-10-07T00:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 22.5,
+   "lon": -93.4,
+   "windKt": 75,
+   "pressureHpa": 981,
+   "rmwNm": 15
+  },
+  {
+   "time": "2024-10-07T06:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 22.1,
+   "lon": -92.9,
+   "windKt": 90,
+   "pressureHpa": 972,
+   "rmwNm": 10
+  },
+  {
+   "time": "2024-10-07T12:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 21.8,
+   "lon": -92.2,
+   "windKt": 120,
+   "pressureHpa": 943,
+   "rmwNm": 10
+  },
+  {
+   "time": "2024-10-07T18:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 21.7,
+   "lon": -91.3,
+   "windKt": 150,
+   "pressureHpa": 908,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-07T20:00:00Z",
+   "record": "I",
+   "status": "HU",
+   "lat": 21.8,
+   "lon": -90.9,
+   "windKt": 155,
+   "pressureHpa": 895,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-08T00:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 21.8,
+   "lon": -90.4,
+   "windKt": 145,
+   "pressureHpa": 902,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-08T06:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 21.9,
+   "lon": -89.5,
+   "windKt": 125,
+   "pressureHpa": 925,
+   "rmwNm": 10
+  },
+  {
+   "time": "2024-10-08T12:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 22.5,
+   "lon": -88.8,
+   "windKt": 125,
+   "pressureHpa": 929,
+   "rmwNm": 10
+  },
+  {
+   "time": "2024-10-08T18:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 22.5,
+   "lon": -88,
+   "windKt": 140,
+   "pressureHpa": 916,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-08T22:05:00Z",
+   "record": "R",
+   "status": "HU",
+   "lat": 22.8,
+   "lon": -87.2,
+   "windKt": 145,
+   "pressureHpa": 902,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-09T00:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 23,
+   "lon": -86.9,
+   "windKt": 140,
+   "pressureHpa": 908,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-09T02:05:00Z",
+   "record": "R",
+   "status": "HU",
+   "lat": 23.3,
+   "lon": -86.6,
+   "windKt": 135,
+   "pressureHpa": 916,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-09T06:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 23.8,
+   "lon": -85.9,
+   "windKt": 140,
+   "pressureHpa": 909,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-09T08:25:00Z",
+   "record": "R",
+   "status": "HU",
+   "lat": 24.3,
+   "lon": -85.4,
+   "windKt": 140,
+   "pressureHpa": 907,
+   "rmwNm": 5
+  },
+  {
+   "time": "2024-10-09T12:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 25,
+   "lon": -84.8,
+   "windKt": 135,
+   "pressureHpa": 919,
+   "rmwNm": 10
+  },
+  {
+   "time": "2024-10-09T18:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 26.3,
+   "lon": -84,
+   "windKt": 115,
+   "pressureHpa": 945,
+   "rmwNm": 15
+  },
+  {
+   "time": "2024-10-10T00:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 27.3,
+   "lon": -82.7,
+   "windKt": 105,
+   "pressureHpa": 956,
+   "rmwNm": 20
+  },
+  {
+   "time": "2024-10-10T00:30:00Z",
+   "record": "L",
+   "status": "HU",
+   "lat": 27.4,
+   "lon": -82.6,
+   "windKt": 100,
+   "pressureHpa": 958,
+   "rmwNm": 20
+  },
+  {
+   "time": "2024-10-10T06:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 28.1,
+   "lon": -81.3,
+   "windKt": 70,
+   "pressureHpa": 975,
+   "rmwNm": 30
+  },
+  {
+   "time": "2024-10-10T12:00:00Z",
+   "record": "",
+   "status": "HU",
+   "lat": 29,
+   "lon": -79.5,
+   "windKt": 65,
+   "pressureHpa": 983,
+   "rmwNm": 50
+  },
+  {
+   "time": "2024-10-10T18:00:00Z",
+   "record": "",
+   "status": "EX",
+   "lat": 29.5,
+   "lon": -77.5,
+   "windKt": 60,
+   "pressureHpa": 984,
+   "rmwNm": 50
+  },
+  {
+   "time": "2024-10-11T00:00:00Z",
+   "record": "",
+   "status": "EX",
+   "lat": 29.5,
+   "lon": -75,
+   "windKt": 60,
+   "pressureHpa": 986,
+   "rmwNm": 50
+  },
+  {
+   "time": "2024-10-11T06:00:00Z",
+   "record": "",
+   "status": "EX",
+   "lat": 29.5,
+   "lon": -72.4,
+   "windKt": 55,
+   "pressureHpa": 993,
+   "rmwNm": 50
+  },
+  {
+   "time": "2024-10-11T12:00:00Z",
+   "record": "",
+   "status": "EX",
+   "lat": 29.5,
+   "lon": -69.3,
+   "windKt": 55,
+   "pressureHpa": 997,
+   "rmwNm": 50
+  },
+  {
+   "time": "2024-10-11T18:00:00Z",
+   "record": "",
+   "status": "EX",
+   "lat": 29.3,
+   "lon": -65.9,
+   "windKt": 50,
+   "pressureHpa": 999,
+   "rmwNm": 50
+  }
+ ]
+}
