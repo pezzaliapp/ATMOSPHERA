@@ -65,6 +65,14 @@ export class CameraRig {
     this.goal = to;
   }
 
+  /** Posiziona subito la camera (regia): nessun volo né smorzamento. */
+  set(state: CameraState): void {
+    this.flight = null;
+    this.goal = clampState(state);
+    this.current = { ...this.goal };
+    this.apply();
+  }
+
   zoomBy(factor: number): void {
     this.flight = null;
     this.goal = clampState({ ...this.goal, distance: this.goal.distance * factor });

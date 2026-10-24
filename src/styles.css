@@ -28,7 +28,7 @@
   --top: max(14px, env(safe-area-inset-top));
   --bottom: max(14px, env(safe-area-inset-bottom));
   --header-h: 56px;
-  --timeline-h: 92px;
+  --timeline-h: 118px;
 
   color-scheme: light dark;
 }
@@ -219,10 +219,74 @@ button {
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
 }
 
-.modes__item:disabled {
+.modes__item--soon {
   color: var(--text-muted);
-  cursor: not-allowed;
+  cursor: default;
   opacity: 0.75;
+}
+
+.brand__beta {
+  align-self: center;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Titolo d'apertura */
+.intro {
+  position: absolute;
+  left: 50%;
+  top: 21%;
+  transform: translate(-50%, -50%) scale(0.98);
+  width: min(720px, calc(100vw - 2 * var(--gutter)));
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 2px 6px rgb(0 0 0 / 0.7), 0 0 30px rgb(0 0 0 / 0.5);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s ease, transform 2.4s ease;
+  z-index: 1;
+}
+
+.intro.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.intro p {
+  margin: 0;
+}
+
+.intro__name {
+  font-size: clamp(2rem, 6vw, 4.2rem);
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  /* Compensa la spaziatura dopo l'ultima lettera: la parola resta centrata. */
+  margin-right: -0.32em !important;
+}
+
+.intro__tagline {
+  margin-top: 6px !important;
+  font-size: clamp(1rem, 2.4vw, 1.5rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.intro__author {
+  margin-top: 14px !important;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+
+.info-dialog__tagline {
+  margin-top: -4px;
+  color: var(--text-muted);
 }
 
 .modes__item small {
@@ -473,14 +537,14 @@ button {
   margin: 0;
 }
 
-/* Traccia dell'intensità */
+/* Riproduzione */
 .timeline {
   position: absolute;
   left: var(--gutter);
   right: calc(var(--gutter-r) + 64px);
   bottom: var(--bottom);
   height: var(--timeline-h);
-  padding: 8px 14px 6px;
+  padding: 8px 14px 6px 8px;
   border-radius: var(--radius);
   z-index: 2;
   display: grid;
@@ -491,18 +555,116 @@ button {
 .timeline__head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.75rem;
+  gap: 10px;
+  min-width: 0;
 }
 
-.timeline__title {
+.timeline__play {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.timeline__play:hover {
+  background: var(--accent);
+  filter: brightness(1.08);
+}
+
+.timeline__clock {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.timeline__time {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.timeline__frame {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline__speeds {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  font-size: 0.74rem;
+}
+
+.timeline__speed {
+  min-width: 30px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline__speed[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
   font-weight: 600;
 }
 
-.timeline__soon {
-  margin-left: auto;
+.timeline__unit {
+  margin-left: 2px;
   color: var(--text-muted);
-  font-size: 0.7rem;
+}
+
+.timeline__director {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.timeline__speeds:not([hidden]) + .timeline__director {
+  margin-left: 0;
+}
+
+.timeline__scrub {
+  position: relative;
+  min-height: 0;
+  margin-left: 6px;
+}
+
+.timeline__slider {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.timeline__scrub:focus-within {
+  border-radius: 6px;
+  box-shadow: var(--focus);
 }
 
 .intensity {
@@ -513,35 +675,86 @@ button {
   overflow: visible;
 }
 
-.intensity__past {
-  opacity: 0.95;
+.intensity__area {
+  opacity: 0.8;
 }
 
-.intensity__future {
-  opacity: 0.32;
-}
-
-.intensity__grid {
-  stroke: var(--border);
-  stroke-dasharray: 3 4;
-  vector-effect: non-scaling-stroke;
-}
-
-.intensity__tick {
+.intensity__obs {
   stroke: var(--text-muted);
-  stroke-opacity: 0.4;
+  stroke-opacity: 0.7;
   vector-effect: non-scaling-stroke;
 }
 
-.intensity__label {
-  fill: var(--text-muted);
+.intensity-chart {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.intensity__label,
+.intensity__peak {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  color: var(--text-muted);
   font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.intensity__peak {
+  margin-top: -2px;
+  color: var(--text);
+  font-weight: 600;
 }
 
 .intensity__now {
   stroke: var(--text);
   stroke-width: 2;
   vector-effect: non-scaling-stroke;
+}
+
+/* Didascalie del racconto */
+.story-caption {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--bottom) + var(--timeline-h) + 22px);
+  transform: translate(-50%, 8px);
+  width: min(560px, calc(100vw - 2 * var(--gutter)));
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.85), 0 0 18px rgb(0 0 0 / 0.55);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  z-index: 1;
+}
+
+.story-caption.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.story-caption p {
+  margin: 0;
+}
+
+.story-caption__title {
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.story-caption__text {
+  margin-top: 4px !important;
+  font-size: 1rem;
+}
+
+.story-caption__source {
+  margin-top: 6px !important;
+  font-size: 0.7rem;
+  opacity: 0.75;
 }
 
 /* Comandi di navigazione */
@@ -721,6 +934,16 @@ button {
   right: 14px;
 }
 
+.info-dialog__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.info-dialog__links a {
+  color: var(--accent);
+}
+
 .info-dialog__version {
   margin-top: 20px !important;
   font-family: var(--font-mono);
@@ -831,7 +1054,7 @@ button {
 @media (max-width: 760px) {
   :root {
     --header-h: 52px;
-    --timeline-h: 74px;
+    --timeline-h: 92px;
   }
 
   .hud-header {
@@ -865,6 +1088,19 @@ button {
 
   .modes__item small {
     display: none;
+  }
+
+  .modes__item--soon {
+    display: none;
+  }
+
+  .brand__beta {
+    font-size: 0.56rem;
+  }
+
+  /* In verticale la parte alta è occupata dalle didascalie: il titolo sta sotto l'orizzonte. */
+  .intro {
+    top: 64%;
   }
 
   .hud-header__tools .icon-button {
@@ -912,10 +1148,9 @@ button {
     display: none;
   }
 
+  /* L'istante è già indicato nella barra di riproduzione. */
   .event-card__time {
-    margin-top: 8px;
-    padding-top: 8px;
-    font-size: 0.72rem;
+    display: none;
   }
 
   .legend {
@@ -945,8 +1180,22 @@ button {
     padding: 6px 10px 4px;
   }
 
-  .timeline__soon {
+  .timeline__unit,
+  .timeline__director span {
     display: none;
+  }
+
+  .story-caption {
+    top: calc(var(--top) + var(--header-h) + 52px);
+    bottom: auto;
+  }
+
+  .story-caption__title {
+    font-size: 1.15rem;
+  }
+
+  .story-caption__text {
+    font-size: 0.86rem;
   }
 
   .view-controls {
@@ -970,13 +1219,27 @@ button {
 @media (max-height: 520px) and (orientation: landscape) {
   :root {
     --header-h: 48px;
-    --timeline-h: 58px;
+    --timeline-h: 70px;
+  }
+
+  .intro {
+    top: 50%;
+  }
+
+  .intro__name {
+    font-size: 2rem;
+  }
+
+  .intro__tagline {
+    font-size: 1rem;
   }
 
   .event-card__rows,
   .event-card__time,
   .event-card__subtitle,
-  .timeline__head,
+  .intro__author,
+  .story-caption__text,
+  .story-caption__source,
   .gesture-hint {
     display: none;
   }

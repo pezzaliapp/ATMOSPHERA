@@ -11,3 +11,6 @@ coverage/
 __pycache__/
 # File grezzi scaricati (GOES, NASA): restano fuori dal repository
 data-raw/
+
+# Cache locale di Wrangler (Cloudflare)
+.wrangler/

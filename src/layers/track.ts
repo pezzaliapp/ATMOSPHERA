@@ -82,6 +82,9 @@ const ribbonFragment = /* glsl */ `
     float edge = 1.0 - smoothstep(0.6, 1.0, abs(vSide));
     vec3 c = future ? vec3(0.92, 0.95, 1.0) : vColor;
     float a = future ? 0.55 : 0.95;
+    // Vicino alla posizione attuale la linea si dissolve: l'occhio resta visibile.
+    float gap = abs(vHours - currentHours);
+    a *= smoothstep(1.2, 4.0, gap);
     gl_FragColor = vec4(c, a * edge);
     #include <colorspace_fragment>
   }
@@ -97,9 +100,12 @@ const pointVertex = /* glsl */ `
   varying vec3 vColor;
   varying float vVisible;
   varying float vFuture;
+  varying float vGap;
 
   void main() {
     vColor = color;
+    // Come il nastro: vicino all'istante corrente i punti si dissolvono e l'occhio resta libero.
+    vGap = smoothstep(1.0, 3.0, abs(hours - currentHours));
     vec4 world = modelMatrix * vec4(position, 1.0);
     vVisible = dot(normalize(position), normalize(cameraPosition - world.xyz));
     vFuture = hours > currentHours + 0.01 ? 1.0 : 0.0;
@@ -112,9 +118,10 @@ const pointFragment = /* glsl */ `
   varying vec3 vColor;
   varying float vVisible;
   varying float vFuture;
+  varying float vGap;
 
   void main() {
-    if (vVisible < 0.0) discard;
+    if (vVisible < 0.0 || vGap <= 0.0) discard;
     float r = length(gl_PointCoord - 0.5) * 2.0;
     if (r > 1.0) discard;
     float a = 1.0 - smoothstep(0.88, 1.0, r);
@@ -128,7 +135,7 @@ const pointFragment = /* glsl */ `
       // Punti passati: disco colorato per categoria con bordo scuro.
       c = mix(vColor, vec3(0.05, 0.07, 0.12), ring);
     }
-    gl_FragColor = vec4(c, a);
+    gl_FragColor = vec4(c, a * vGap);
     #include <colorspace_fragment>
   }
 `;
@@ -269,6 +276,12 @@ export function createTrackLayer(track: StormTrack, currentTime: Date, pixelRati
       const fov = (camera.fov * Math.PI) / 180;
       ribbonMaterial.uniforms.halfWidth!.value = Math.tan(fov / 2) * distance * 0.0055;
       ribbonMaterial.uniforms.dashKm!.value = Math.max(15, distance * 260);
+    },
+    /** Istante rappresentato: separa il passato (pieno) dal futuro (tratteggiato). */
+    setTime(time: Date) {
+      const hours = (time.getTime() - t0) / 3_600_000;
+      ribbonMaterial.uniforms.currentHours!.value = hours;
+      pointMaterial.uniforms.currentHours!.value = hours;
     },
     setVisible(visible: boolean) {
       group.visible = visible;

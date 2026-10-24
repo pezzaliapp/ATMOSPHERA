@@ -110,6 +110,13 @@ export class Engine {
     this.needsRender = true;
   }
 
+  /** Disegna subito un frame (registrazione dell'anteprima). */
+  renderNow(): void {
+    this.renderer.render(this.scene, this.camera);
+    this.needsRender = false;
+    for (const callback of this.afterRender) callback();
+  }
+
   start(): void {
     // Carica shader e texture sulla GPU prima del primo frame, evitando uno scatto iniziale.
     this.renderer.compile(this.scene, this.camera);

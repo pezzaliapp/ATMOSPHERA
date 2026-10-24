@@ -50,7 +50,9 @@ autori, quindi l'app usa la forma istituzionale "NASA Earth Observatory".
 
 ## Evento Milton 2024 — prototipo E0
 
-File in `public/data/events/milton-2024/`, inclusi nell'app. Procedura completa e riproducibile
+Dalla Preview Beta l'app usa la sequenza animata (sotto); delle elaborazioni E0 restano nell'app
+`surface.jpg` e `track.json`, mentre le nuvole statiche `clouds-*.jpg` non vengono più pubblicate
+(si rigenerano con `goes_clouds.py`). Procedura completa e riproducibile
 in [`scripts/data/README.md`](scripts/data/README.md).
 
 ### Nuvole — NOAA GOES-16 ABI (OSSERVATO)
@@ -109,3 +111,20 @@ Nel browser (vedi `src/globe/shading.ts`) le grandezze osservate diventano:
 | Altri cicloni | NOAA HURDAT2 / IBTrACS (pubblico dominio) | HURDAT2 in uso per Milton |
 | M4 venti | Dati dimostrativi locali; Open-Meteo solo dopo verifica delle condizioni d'uso (D1) | in attesa |
 | M5 navi | Fintraffic Digitraffic (CC BY 4.0) + replay storico (D2) | in attesa, nessuna API integrata |
+
+## Sequenza animata GOES-16 (E1, anteprima)
+
+- Prodotto: NOAA GOES-16 ABI L2 Cloud and Moisture Imagery multicanale (ABI-L2-MCMIPC),
+  settore CONUS, canali 2 (0,64 µm, 2 km) e 13 (10,3 µm, 2 km).
+- Istanti: 7 ottobre 2024, una scansione ogni 20 minuti dalle 12:21 alle 23:41 UTC (35 file).
+  Per ciascuno `public/data/events/milton-2024/seq/frames.json` riporta chiave S3, ETag,
+  dimensione, finestra letta e byte scaricati.
+- Accesso: archivio pubblico NOAA Open Data Dissemination (s3://noaa-goes16, HTTPS anonimo),
+  lettura parziale con richieste HTTP Range: 316 MB scaricati in tutto, nessun account.
+- Elaborazione: riproiezione 0,025° (albedo) e 0,05° (temperatura), correzione della
+  parallasse delle sommità (quota stimata dalla temperatura, 0–16 km), campo di moto per i
+  fotogrammi intermedi ILLUSTRATIVI. Dettagli in `scripts/data/README.md`.
+- Visualizzazione (Preview Beta): nella scena la quota RICOSTRUITA delle sommità arriva a 18 km
+  (prima 16), perché nel CDO di Milton le temperature vanno da 194 a 202 K e un limite a 16 km
+  le appiattiva alla stessa quota; i toni alti dell'albedo sono espansi e il contrasto locale
+  accentuato come in una maschera di nitidezza. Nessun dettaglio viene aggiunto ai dati.

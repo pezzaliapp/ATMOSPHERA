@@ -1,0 +1,918 @@
+{
+  "bounds": {
+    "west": -100.0,
+    "south": 16.0,
+    "east": -68.0,
+    "north": 36.0
+  },
+  "albedoSize": [
+    1280,
+    800
+  ],
+  "btSize": [
+    640,
+    400
+  ],
+  "encoding": {
+    "albedo": {
+      "quantity": "albedo apparente (riflettanza C02 / cos zenit solare), 0 di notte",
+      "min": 0,
+      "max": 1.0
+    },
+    "bt": {
+      "quantity": "temperatura di brillanza C13",
+      "unit": "K",
+      "min": 180.0,
+      "max": 310.0
+    }
+  },
+  "parallax": {
+    "corrected": true,
+    "model": "quota sommità = (300 K − BT) / 6,5 K/km, 0–16 km; geometria di vista GOES-R PUG con altitudine"
+  },
+  "product": "ABI-L2-MCMIPC",
+  "archive": "NOAA Open Data Dissemination (NODD) — s3://noaa-goes16",
+  "downloadedBytes": 316357787,
+  "frames": [
+    {
+      "id": "20241007T1221Z",
+      "nominal": "2024-10-07T12:20Z",
+      "observed": "2024-10-07T12:21:17.3Z",
+      "albedo": "20241007T1221Z-albedo.jpg",
+      "bt": "20241007T1221Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 0.759,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/12/OR_ABI-L2-MCMIPC-M6_G16_s20242811221173_e20242811223546_c20242811224077.nc",
+        "size": 48217486,
+        "etag": "67f058079bb6eacbd96363d41a549ad2-6",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8109454,
+        "requests": 31
+      },
+      "flow": "20241007T1221Z-flow.png",
+      "flowMaxPx": 17.03
+    },
+    {
+      "id": "20241007T1241Z",
+      "nominal": "2024-10-07T12:40Z",
+      "observed": "2024-10-07T12:41:17.3Z",
+      "albedo": "20241007T1241Z-albedo.jpg",
+      "bt": "20241007T1241Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 0.9152,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/12/OR_ABI-L2-MCMIPC-M6_G16_s20242811241173_e20242811243558_c20242811244080.nc",
+        "size": 49669034,
+        "etag": "9f73df3334f5a88452fb49b1d5b22885-6",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9036714,
+        "requests": 35
+      },
+      "flow": "20241007T1241Z-flow.png",
+      "flowMaxPx": 15.85
+    },
+    {
+      "id": "20241007T1301Z",
+      "nominal": "2024-10-07T13:00Z",
+      "observed": "2024-10-07T13:01:17.3Z",
+      "albedo": "20241007T1301Z-albedo.jpg",
+      "bt": "20241007T1301Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/13/OR_ABI-L2-MCMIPC-M6_G16_s20242811301173_e20242811303558_c20242811304070.nc",
+        "size": 51095109,
+        "etag": "e60afb8b7dcd4925adae9dd3ffd0b73a-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8627781,
+        "requests": 33
+      },
+      "flow": "20241007T1301Z-flow.png",
+      "flowMaxPx": 15.62
+    },
+    {
+      "id": "20241007T1321Z",
+      "nominal": "2024-10-07T13:20Z",
+      "observed": "2024-10-07T13:21:17.3Z",
+      "albedo": "20241007T1321Z-albedo.jpg",
+      "bt": "20241007T1321Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/13/OR_ABI-L2-MCMIPC-M6_G16_s20242811321173_e20242811323546_c20242811324074.nc",
+        "size": 52546232,
+        "etag": "35e0441c2287969bbeb3ff833a5f1309-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8506040,
+        "requests": 33
+      },
+      "flow": "20241007T1321Z-flow.png",
+      "flowMaxPx": 15.79
+    },
+    {
+      "id": "20241007T1341Z",
+      "nominal": "2024-10-07T13:40Z",
+      "observed": "2024-10-07T13:41:17.3Z",
+      "albedo": "20241007T1341Z-albedo.jpg",
+      "bt": "20241007T1341Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/13/OR_ABI-L2-MCMIPC-M6_G16_s20242811341173_e20242811343558_c20242811344072.nc",
+        "size": 53879959,
+        "etag": "4dfae796d245f0f01f38f701cc616ce9-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8529047,
+        "requests": 33
+      },
+      "flow": "20241007T1341Z-flow.png",
+      "flowMaxPx": 14.64
+    },
+    {
+      "id": "20241007T1401Z",
+      "nominal": "2024-10-07T14:00Z",
+      "observed": "2024-10-07T14:01:17.3Z",
+      "albedo": "20241007T1401Z-albedo.jpg",
+      "bt": "20241007T1401Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/14/OR_ABI-L2-MCMIPC-M6_G16_s20242811401173_e20242811403546_c20242811404070.nc",
+        "size": 54952844,
+        "etag": "7563fb1f40ad36cfab3af1ce1452b4a8-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9601932,
+        "requests": 37
+      },
+      "flow": "20241007T1401Z-flow.png",
+      "flowMaxPx": 14.3
+    },
+    {
+      "id": "20241007T1421Z",
+      "nominal": "2024-10-07T14:20Z",
+      "observed": "2024-10-07T14:21:17.3Z",
+      "albedo": "20241007T1421Z-albedo.jpg",
+      "bt": "20241007T1421Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/14/OR_ABI-L2-MCMIPC-M6_G16_s20242811421173_e20242811423558_c20242811424072.nc",
+        "size": 55860638,
+        "etag": "a2f320ac1489bd93e3ab156d54d56edb-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8674718,
+        "requests": 34
+      },
+      "flow": "20241007T1421Z-flow.png",
+      "flowMaxPx": 14.35
+    },
+    {
+      "id": "20241007T1441Z",
+      "nominal": "2024-10-07T14:40Z",
+      "observed": "2024-10-07T14:41:17.3Z",
+      "albedo": "20241007T1441Z-albedo.jpg",
+      "bt": "20241007T1441Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/14/OR_ABI-L2-MCMIPC-M6_G16_s20242811441173_e20242811443559_c20242811444073.nc",
+        "size": 56530390,
+        "etag": "9388846748032b512e3de527a99dd437-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9082326,
+        "requests": 35
+      },
+      "flow": "20241007T1441Z-flow.png",
+      "flowMaxPx": 14.42
+    },
+    {
+      "id": "20241007T1501Z",
+      "nominal": "2024-10-07T15:00Z",
+      "observed": "2024-10-07T15:01:17.3Z",
+      "albedo": "20241007T1501Z-albedo.jpg",
+      "bt": "20241007T1501Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/15/OR_ABI-L2-MCMIPC-M6_G16_s20242811501173_e20242811503558_c20242811504068.nc",
+        "size": 57139391,
+        "etag": "f1e070d6d3b874a9b436f31603fcceec-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8904895,
+        "requests": 34
+      },
+      "flow": "20241007T1501Z-flow.png",
+      "flowMaxPx": 15.52
+    },
+    {
+      "id": "20241007T1521Z",
+      "nominal": "2024-10-07T15:20Z",
+      "observed": "2024-10-07T15:21:17.3Z",
+      "albedo": "20241007T1521Z-albedo.jpg",
+      "bt": "20241007T1521Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/15/OR_ABI-L2-MCMIPC-M6_G16_s20242811521173_e20242811523558_c20242811524078.nc",
+        "size": 57763329,
+        "etag": "09cef0777d4e904275b46ed9384c8206-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9266689,
+        "requests": 36
+      },
+      "flow": "20241007T1521Z-flow.png",
+      "flowMaxPx": 16.33
+    },
+    {
+      "id": "20241007T1541Z",
+      "nominal": "2024-10-07T15:40Z",
+      "observed": "2024-10-07T15:41:17.3Z",
+      "albedo": "20241007T1541Z-albedo.jpg",
+      "bt": "20241007T1541Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/15/OR_ABI-L2-MCMIPC-M6_G16_s20242811541173_e20242811543558_c20242811544073.nc",
+        "size": 58330661,
+        "etag": "9e24f3c7924a77ac0df0a5640b367d80-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9309733,
+        "requests": 36
+      },
+      "flow": "20241007T1541Z-flow.png",
+      "flowMaxPx": 18.75
+    },
+    {
+      "id": "20241007T1601Z",
+      "nominal": "2024-10-07T16:00Z",
+      "observed": "2024-10-07T16:01:17.3Z",
+      "albedo": "20241007T1601Z-albedo.jpg",
+      "bt": "20241007T1601Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/16/OR_ABI-L2-MCMIPC-M6_G16_s20242811601173_e20242811603546_c20242811604074.nc",
+        "size": 58823445,
+        "etag": "cb14207ea3ade6493710214964613b99-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9802517,
+        "requests": 38
+      },
+      "flow": "20241007T1601Z-flow.png",
+      "flowMaxPx": 16.96
+    },
+    {
+      "id": "20241007T1621Z",
+      "nominal": "2024-10-07T16:20Z",
+      "observed": "2024-10-07T16:21:17.3Z",
+      "albedo": "20241007T1621Z-albedo.jpg",
+      "bt": "20241007T1621Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/16/OR_ABI-L2-MCMIPC-M6_G16_s20242811621173_e20242811623558_c20242811624071.nc",
+        "size": 59273889,
+        "etag": "9099ad1459a0330990d1e163e901b883-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9466529,
+        "requests": 37
+      },
+      "flow": "20241007T1621Z-flow.png",
+      "flowMaxPx": 19.4
+    },
+    {
+      "id": "20241007T1641Z",
+      "nominal": "2024-10-07T16:40Z",
+      "observed": "2024-10-07T16:41:17.3Z",
+      "albedo": "20241007T1641Z-albedo.jpg",
+      "bt": "20241007T1641Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/16/OR_ABI-L2-MCMIPC-M6_G16_s20242811641173_e20242811643558_c20242811644063.nc",
+        "size": 59718738,
+        "etag": "4d980dc8f0509df1c188c6b44bb040b7-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 10173522,
+        "requests": 39
+      },
+      "flow": "20241007T1641Z-flow.png",
+      "flowMaxPx": 19.3
+    },
+    {
+      "id": "20241007T1701Z",
+      "nominal": "2024-10-07T17:00Z",
+      "observed": "2024-10-07T17:01:17.3Z",
+      "albedo": "20241007T1701Z-albedo.jpg",
+      "bt": "20241007T1701Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/17/OR_ABI-L2-MCMIPC-M6_G16_s20242811701173_e20242811703558_c20242811704069.nc",
+        "size": 59831591,
+        "etag": "a500111674690088fa28c9bc96997699-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9499943,
+        "requests": 37
+      },
+      "flow": "20241007T1701Z-flow.png",
+      "flowMaxPx": 17.85
+    },
+    {
+      "id": "20241007T1721Z",
+      "nominal": "2024-10-07T17:20Z",
+      "observed": "2024-10-07T17:21:17.3Z",
+      "albedo": "20241007T1721Z-albedo.jpg",
+      "bt": "20241007T1721Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/17/OR_ABI-L2-MCMIPC-M6_G16_s20242811721173_e20242811723546_c20242811724070.nc",
+        "size": 59943010,
+        "etag": "f73056bbe91ce30e91ffe03308bdfd5f-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9087074,
+        "requests": 35
+      },
+      "flow": "20241007T1721Z-flow.png",
+      "flowMaxPx": 17.73
+    },
+    {
+      "id": "20241007T1741Z",
+      "nominal": "2024-10-07T17:40Z",
+      "observed": "2024-10-07T17:41:17.3Z",
+      "albedo": "20241007T1741Z-albedo.jpg",
+      "bt": "20241007T1741Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/17/OR_ABI-L2-MCMIPC-M6_G16_s20242811741173_e20242811743546_c20242811744060.nc",
+        "size": 60083887,
+        "etag": "697ac25d5b5bc321f4cf16fe8803cbd8-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 10276527,
+        "requests": 40
+      },
+      "flow": "20241007T1741Z-flow.png",
+      "flowMaxPx": 17.81
+    },
+    {
+      "id": "20241007T1801Z",
+      "nominal": "2024-10-07T18:00Z",
+      "observed": "2024-10-07T18:01:17.3Z",
+      "albedo": "20241007T1801Z-albedo.jpg",
+      "bt": "20241007T1801Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/18/OR_ABI-L2-MCMIPC-M6_G16_s20242811801173_e20242811803558_c20242811804079.nc",
+        "size": 60178771,
+        "etag": "83d844243c965b27f2411cba9acbd51b-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 10109267,
+        "requests": 39
+      },
+      "flow": "20241007T1801Z-flow.png",
+      "flowMaxPx": 18.09
+    },
+    {
+      "id": "20241007T1821Z",
+      "nominal": "2024-10-07T18:20Z",
+      "observed": "2024-10-07T18:21:17.3Z",
+      "albedo": "20241007T1821Z-albedo.jpg",
+      "bt": "20241007T1821Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/18/OR_ABI-L2-MCMIPC-M6_G16_s20242811821173_e20242811823546_c20242811824067.nc",
+        "size": 60256662,
+        "etag": "ee80001760c3276b12eadef90129a689-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8876438,
+        "requests": 34
+      },
+      "flow": "20241007T1821Z-flow.png",
+      "flowMaxPx": 18.37
+    },
+    {
+      "id": "20241007T1841Z",
+      "nominal": "2024-10-07T18:40Z",
+      "observed": "2024-10-07T18:41:17.3Z",
+      "albedo": "20241007T1841Z-albedo.jpg",
+      "bt": "20241007T1841Z-bt.jpg",
+      "validFraction": 0.9991,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/18/OR_ABI-L2-MCMIPC-M6_G16_s20242811841173_e20242811843552_c20242811844078.nc",
+        "size": 60301372,
+        "etag": "08e0abadbe2b91c5718f71b6b7d5e224-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9445436,
+        "requests": 37
+      },
+      "flow": "20241007T1841Z-flow.png",
+      "flowMaxPx": 18.19
+    },
+    {
+      "id": "20241007T1901Z",
+      "nominal": "2024-10-07T19:00Z",
+      "observed": "2024-10-07T19:01:17.3Z",
+      "albedo": "20241007T1901Z-albedo.jpg",
+      "bt": "20241007T1901Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/19/OR_ABI-L2-MCMIPC-M6_G16_s20242811901173_e20242811903546_c20242811904068.nc",
+        "size": 60332797,
+        "etag": "a93036aba2963b2c229086c9b34a00b4-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9476861,
+        "requests": 37
+      },
+      "flow": "20241007T1901Z-flow.png",
+      "flowMaxPx": 18.55
+    },
+    {
+      "id": "20241007T1921Z",
+      "nominal": "2024-10-07T19:20Z",
+      "observed": "2024-10-07T19:21:17.3Z",
+      "albedo": "20241007T1921Z-albedo.jpg",
+      "bt": "20241007T1921Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/19/OR_ABI-L2-MCMIPC-M6_G16_s20242811921173_e20242811923558_c20242811924085.nc",
+        "size": 60217195,
+        "etag": "5156e040433a0238d4f12d58bbf81a17-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9099115,
+        "requests": 35
+      },
+      "flow": "20241007T1921Z-flow.png",
+      "flowMaxPx": 18.74
+    },
+    {
+      "id": "20241007T1941Z",
+      "nominal": "2024-10-07T19:40Z",
+      "observed": "2024-10-07T19:41:17.3Z",
+      "albedo": "20241007T1941Z-albedo.jpg",
+      "bt": "20241007T1941Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/19/OR_ABI-L2-MCMIPC-M6_G16_s20242811941173_e20242811943558_c20242811944083.nc",
+        "size": 60011986,
+        "etag": "bbb02a8eaee00aaa26c702e2262ee90e-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8893906,
+        "requests": 34
+      },
+      "flow": "20241007T1941Z-flow.png",
+      "flowMaxPx": 18.22
+    },
+    {
+      "id": "20241007T2001Z",
+      "nominal": "2024-10-07T20:00Z",
+      "observed": "2024-10-07T20:01:17.3Z",
+      "albedo": "20241007T2001Z-albedo.jpg",
+      "bt": "20241007T2001Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/20/OR_ABI-L2-MCMIPC-M6_G16_s20242812001173_e20242812003546_c20242812004073.nc",
+        "size": 59804862,
+        "etag": "525ba63bbeccaca532d5851e8e29b067-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9735358,
+        "requests": 38
+      },
+      "flow": "20241007T2001Z-flow.png",
+      "flowMaxPx": 19.5
+    },
+    {
+      "id": "20241007T2021Z",
+      "nominal": "2024-10-07T20:20Z",
+      "observed": "2024-10-07T20:21:17.3Z",
+      "albedo": "20241007T2021Z-albedo.jpg",
+      "bt": "20241007T2021Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/20/OR_ABI-L2-MCMIPC-M6_G16_s20242812021173_e20242812023552_c20242812024080.nc",
+        "size": 59292842,
+        "etag": "aae9d140518fb1441ef7d57126e6549a-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9747626,
+        "requests": 38
+      },
+      "flow": "20241007T2021Z-flow.png",
+      "flowMaxPx": 19.67
+    },
+    {
+      "id": "20241007T2041Z",
+      "nominal": "2024-10-07T20:40Z",
+      "observed": "2024-10-07T20:41:17.3Z",
+      "albedo": "20241007T2041Z-albedo.jpg",
+      "bt": "20241007T2041Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/20/OR_ABI-L2-MCMIPC-M6_G16_s20242812041173_e20242812043546_c20242812044088.nc",
+        "size": 59138757,
+        "etag": "7ea2598444e288ce3fbe84f0b61eda3b-8",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9069253,
+        "requests": 35
+      },
+      "flow": "20241007T2041Z-flow.png",
+      "flowMaxPx": 19.95
+    },
+    {
+      "id": "20241007T2101Z",
+      "nominal": "2024-10-07T21:00Z",
+      "observed": "2024-10-07T21:01:17.3Z",
+      "albedo": "20241007T2101Z-albedo.jpg",
+      "bt": "20241007T2101Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/21/OR_ABI-L2-MCMIPC-M6_G16_s20242812101173_e20242812103546_c20242812104089.nc",
+        "size": 58593595,
+        "etag": "e7d14ef9c983faeffcae0caf8ae13a40-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 9310523,
+        "requests": 36
+      },
+      "flow": "20241007T2101Z-flow.png",
+      "flowMaxPx": 19.62
+    },
+    {
+      "id": "20241007T2121Z",
+      "nominal": "2024-10-07T21:20Z",
+      "observed": "2024-10-07T21:21:17.3Z",
+      "albedo": "20241007T2121Z-albedo.jpg",
+      "bt": "20241007T2121Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/21/OR_ABI-L2-MCMIPC-M6_G16_s20242812121173_e20242812123552_c20242812124063.nc",
+        "size": 57758541,
+        "etag": "ce1ebd53f18ab124476650fbe695a35c-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8999757,
+        "requests": 35
+      },
+      "flow": "20241007T2121Z-flow.png",
+      "flowMaxPx": 19.26
+    },
+    {
+      "id": "20241007T2141Z",
+      "nominal": "2024-10-07T21:40Z",
+      "observed": "2024-10-07T21:41:17.3Z",
+      "albedo": "20241007T2141Z-albedo.jpg",
+      "bt": "20241007T2141Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 1.0,
+      "parallaxShiftKmP999": 8.2,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/21/OR_ABI-L2-MCMIPC-M6_G16_s20242812141173_e20242812143557_c20242812144080.nc",
+        "size": 56489586,
+        "etag": "ae671dc331c6ed9e2a040e105281bf60-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8779378,
+        "requests": 34
+      },
+      "flow": "20241007T2141Z-flow.png",
+      "flowMaxPx": 19.93
+    },
+    {
+      "id": "20241007T2201Z",
+      "nominal": "2024-10-07T22:00Z",
+      "observed": "2024-10-07T22:01:17.3Z",
+      "albedo": "20241007T2201Z-albedo.jpg",
+      "bt": "20241007T2201Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 0.9491,
+      "parallaxShiftKmP999": 8.2,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/22/OR_ABI-L2-MCMIPC-M6_G16_s20242812201173_e20242812203557_c20242812204063.nc",
+        "size": 54715213,
+        "etag": "522848126ebf21b94cb291da3e2ea24e-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8840013,
+        "requests": 34
+      },
+      "flow": "20241007T2201Z-flow.png",
+      "flowMaxPx": 20.29
+    },
+    {
+      "id": "20241007T2221Z",
+      "nominal": "2024-10-07T22:20Z",
+      "observed": "2024-10-07T22:21:17.3Z",
+      "albedo": "20241007T2221Z-albedo.jpg",
+      "bt": "20241007T2221Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 0.7927,
+      "parallaxShiftKmP999": 8.2,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/22/OR_ABI-L2-MCMIPC-M6_G16_s20242812221173_e20242812223558_c20242812224075.nc",
+        "size": 52715456,
+        "etag": "be42bad857b65d058dba1b83676d6c14-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8413120,
+        "requests": 33
+      },
+      "flow": "20241007T2221Z-flow.png",
+      "flowMaxPx": 20.59
+    },
+    {
+      "id": "20241007T2241Z",
+      "nominal": "2024-10-07T22:40Z",
+      "observed": "2024-10-07T22:41:17.3Z",
+      "albedo": "20241007T2241Z-albedo.jpg",
+      "bt": "20241007T2241Z-bt.jpg",
+      "validFraction": 0.9956,
+      "sunlitFraction": 0.6364,
+      "parallaxShiftKmP999": 8.2,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/22/OR_ABI-L2-MCMIPC-M6_G16_s20242812241173_e20242812243558_c20242812244066.nc",
+        "size": 50783322,
+        "etag": "fbe5bc331e76c501854269dfc88b54bc-7",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8053850,
+        "requests": 31
+      },
+      "flow": "20241007T2241Z-flow.png",
+      "flowMaxPx": 20.98
+    },
+    {
+      "id": "20241007T2301Z",
+      "nominal": "2024-10-07T23:00Z",
+      "observed": "2024-10-07T23:01:17.3Z",
+      "albedo": "20241007T2301Z-albedo.jpg",
+      "bt": "20241007T2301Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 0.48,
+      "parallaxShiftKmP999": 8.2,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/23/OR_ABI-L2-MCMIPC-M6_G16_s20242812301173_e20242812303558_c20242812304067.nc",
+        "size": 49069918,
+        "etag": "d63180c54f2bc83fcbd73b9d220ecde5-6",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 8175454,
+        "requests": 32
+      },
+      "flow": "20241007T2301Z-flow.png",
+      "flowMaxPx": 22.03
+    },
+    {
+      "id": "20241007T2321Z",
+      "nominal": "2024-10-07T23:20Z",
+      "observed": "2024-10-07T23:21:17.3Z",
+      "albedo": "20241007T2321Z-albedo.jpg",
+      "bt": "20241007T2321Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 0.3236,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/23/OR_ABI-L2-MCMIPC-M6_G16_s20242812321173_e20242812323552_c20242812324059.nc",
+        "size": 47482783,
+        "etag": "c99bcfb0d6e0d383d1fa102bec3ab32b-6",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 7899039,
+        "requests": 31
+      },
+      "flow": "20241007T2321Z-flow.png",
+      "flowMaxPx": 21.93
+    },
+    {
+      "id": "20241007T2341Z",
+      "nominal": "2024-10-07T23:40Z",
+      "observed": "2024-10-07T23:41:17.3Z",
+      "albedo": "20241007T2341Z-albedo.jpg",
+      "bt": "20241007T2341Z-bt.jpg",
+      "validFraction": 1.0,
+      "sunlitFraction": 0.1673,
+      "parallaxShiftKmP999": 8.3,
+      "source": {
+        "key": "ABI-L2-MCMIPC/2024/281/23/OR_ABI-L2-MCMIPC-M6_G16_s20242812341173_e20242812343552_c20242812344057.nc",
+        "size": 46013120,
+        "etag": "c32f4bccb1a1aa21f32cacf327310f4e-6",
+        "window": [
+          487,
+          1443,
+          541,
+          2185
+        ],
+        "downloadedBytes": 7477952,
+        "requests": 29
+      }
+    }
+  ],
+  "flowEncoding": {
+    "file": "PNG RGB 8 bit, R = vx, G = vy (pixel albedo verso est e verso sud)",
+    "downsample": 4,
+    "scale": 4.0,
+    "offset": 128,
+    "method": "OpenCV DIS (preset medium) su visibile e infrarosso fusi col Sole, media avanti/indietro, sfocatura gaussiana σ = 3.0 px"
+  }
+}

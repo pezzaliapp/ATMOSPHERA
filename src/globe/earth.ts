@@ -1,4 +1,5 @@
 import { Mesh, ShaderMaterial, SphereGeometry, Vector3, Vector4, type Texture } from 'three';
+import { cloudSequenceGlsl, type CloudSequence } from '../layers/cloud-sequence';
 import { aerialPerspective, cloudModel } from './shading';
 
 /**
@@ -26,8 +27,6 @@ const fragmentShader = /* glsl */ `
   uniform sampler2D dayMap;
   uniform sampler2D nightMap;
   uniform sampler2D regionMap;
-  uniform sampler2D cloudAlbedo;
-  uniform sampler2D cloudBT;
   uniform vec4 regionBounds;
   uniform float regionEnabled;
   uniform float cloudsEnabled;
@@ -42,6 +41,7 @@ const fragmentShader = /* glsl */ `
 
   ${aerialPerspective}
   ${cloudModel}
+  ${cloudSequenceGlsl}
 
   const float RAD = 57.29577951308232;
 
@@ -59,10 +59,12 @@ const fragmentShader = /* glsl */ `
     float hKm = 8.0 * cloudExaggeration;
     vec2 p = latLon + vec2(sunDir.x, sunDir.y / cosLat) * hKm * cotElev * kmToDeg;
     vec2 uv = regionUv(p, regionBounds);
-    hKm = cloudTopKm(decodeBT(textureLod(cloudBT, uv, 2.0).r)) * cloudExaggeration;
+    vec2 vc = flowAt(flowCur, uv);
+    hKm = cloudTopKm(decodeBT(sampleSequenceLod(uv, vc, 2.0).y)) * cloudExaggeration;
     p = latLon + vec2(sunDir.x, sunDir.y / cosLat) * hKm * cotElev * kmToDeg;
     uv = regionUv(p, regionBounds);
-    float op = cloudOpacity(texture2D(cloudAlbedo, uv).r, decodeBT(texture2D(cloudBT, uv).r), 1.0);
+    vec2 s = sampleSequenceLod(uv, vc, 0.0);
+    float op = cloudOpacity(s.x, decodeBT(s.y), smoothstep(0.02, 0.22, sinElev));
     return op * regionMask(uv);
   }
 
@@ -113,8 +115,7 @@ const fragmentShader = /* glsl */ `
 
 export interface RegionOverlay {
   surface: Texture;
-  cloudAlbedo: Texture;
-  cloudBT: Texture;
+  clouds: CloudSequence;
   /** [ovest, sud, est, nord] in gradi. */
   bounds: [number, number, number, number];
   exaggeration: number;
@@ -136,9 +137,8 @@ export function createEarth({ dayMap, nightMap, segments, region }: EarthOptions
     uniforms: {
       dayMap: { value: dayMap },
       nightMap: { value: nightMap },
+      ...(region?.clouds.uniforms ?? {}),
       regionMap: { value: region?.surface ?? dayMap },
-      cloudAlbedo: { value: region?.cloudAlbedo ?? dayMap },
-      cloudBT: { value: region?.cloudBT ?? dayMap },
       regionBounds: { value: new Vector4(...(region?.bounds ?? [0, 0, 1, 1])) },
       regionEnabled: { value: region ? 1 : 0 },
       cloudsEnabled: { value: region ? 1 : 0 },

@@ -3,3 +3,4 @@
 numpy==2.5.3     # BSD-3-Clause (con componenti 0BSD, MIT, Zlib, CC0)
 h5py==3.16.0     # BSD-3-Clause — lettura dei file NetCDF4/HDF5 di GOES
 pillow==12.3.0   # MIT-CMU — lettura e scrittura JPEG
+opencv-python-headless==4.14.0.94  # Apache-2.0 (include FFmpeg LGPL, libjpeg-turbo, libpng: vedi LICENSE-3RD-PARTY.txt del pacchetto) — flusso ottico, solo in locale

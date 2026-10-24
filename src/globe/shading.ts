@@ -42,16 +42,23 @@ export const cloudModel = /* glsl */ `
     return clamp(mix(ir, vis, dayWeight), 0.0, 1.0);
   }
 
-  float cloudTopKm(float bt) { return clamp((300.0 - bt) / 6.5, 0.0, 16.0); }
+  // Fino a 18 km: nel CDO di Milton le sommità vanno da 194 a 202 K e un limite a 16 km
+  // (196 K) le appiattirebbe tutte alla stessa quota, cancellando la struttura osservata.
+  float cloudTopKm(float bt) { return clamp((300.0 - bt) / 6.5, 0.0, 18.0); }
 
   /** Coordinate (0–1) nella regione; fuori dalla regione restituisce valori esterni a [0, 1]. */
   vec2 regionUv(vec2 latLon, vec4 bounds) {
     return vec2((latLon.y - bounds.x) / (bounds.z - bounds.x), (latLon.x - bounds.y) / (bounds.w - bounds.y));
   }
 
-  /** Sfumatura ai bordi della regione (evita tagli netti). */
+  /**
+   * Sfumatura ai bordi della regione (evita tagli netti): circa 2,5° su ogni lato,
+   * con un profilo morbido che non lascia una linea percepibile in prospettiva radente.
+   */
   float regionMask(vec2 uv) {
-    vec2 e = smoothstep(vec2(0.0), vec2(0.015), uv) * smoothstep(vec2(1.0), vec2(0.985), uv);
+    const vec2 EDGE = vec2(0.08, 0.12);
+    vec2 e = smoothstep(vec2(0.0), EDGE, uv) * smoothstep(vec2(1.0), vec2(1.0) - EDGE, uv);
+    e = e * e * (3.0 - 2.0 * e);
     return e.x * e.y;
   }
 `;

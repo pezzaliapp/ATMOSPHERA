@@ -1,0 +1,24 @@
+{
+  "$comment": "Intestazioni di sicurezza: la CSP va nel meta di index.html (vite.config.ts) e, con le altre, nel file _headers di Cloudflare Pages (scripts/postbuild.mjs).",
+  "csp": [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self'",
+    "img-src 'self' data: blob:",
+    "connect-src 'self'",
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'none'"
+  ],
+  "headerOnlyCsp": [
+    "frame-ancestors 'none'"
+  ],
+  "headers": {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    "Cross-Origin-Opener-Policy": "same-origin"
+  }
+}

@@ -84,6 +84,7 @@ versioni in `scripts/data/requirements.txt`):
 | numpy | 2.5.3 | BSD-3-Clause (con componenti 0BSD, MIT, Zlib, CC0-1.0) |
 | h5py | 3.16.0 | BSD-3-Clause |
 | Pillow | 12.3.0 | MIT-CMU |
+| opencv-python-headless | 4.14.0.94 | Apache-2.0; il pacchetto include FFmpeg (LGPL-2.1), libjpeg-turbo, libpng e altri componenti elencati nel suo `LICENSE-3RD-PARTY.txt`. Usato solo per calcolare il campo di moto delle nuvole; nulla di OpenCV entra nell'app. Wheel verificata con SHA-256 `bc7db37dc234f7bb3190a158fd9dd750357246fc7d8adb23698843ef721a993b` (PyPI). |
 
 Le dipendenze transitive degli strumenti di sviluppo includono pacchetti MIT, ISC, BSD,
 Apache-2.0 e BlueOak-1.0.0, più `lightningcss` (MPL-2.0, usato da Vite per il CSS) e
