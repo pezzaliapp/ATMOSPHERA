@@ -2,12 +2,13 @@
  * Orologio di riproduzione degli eventi.
  *
  * STORY: racconto accelerato a durata fissa, con regia della camera.
+ * EXPLORE: camera libera; il tempo scorre a velocità scelta e ricomincia alla fine.
  * REPLAY: riproduzione scientifica a velocità scelta (minuti di osservazione per secondo),
  *         sempre con l'ora reale indicata.
  * Funzione pura rispetto al tempo: update(dt) avanza, nessun accesso a orologi di sistema.
  */
 
-export type PlaybackMode = 'story' | 'replay';
+export type PlaybackMode = 'story' | 'explore' | 'replay';
 
 export interface PlaybackRange {
   start: number;
@@ -19,7 +20,7 @@ export class Playback {
   playing = true;
   /** Istante rappresentato, in ms UTC. */
   time: number;
-  /** REPLAY: minuti di osservazione per secondo reale. */
+  /** EXPLORE e REPLAY: minuti di osservazione per secondo reale. */
   replaySpeed = 20;
   loop = false;
   onEnd: (() => void) | null = null;

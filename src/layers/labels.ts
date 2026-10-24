@@ -21,6 +21,8 @@ const DEFAULT_MAX: Record<PlaceLabel['kind'], number> = { region: 1.6, city: 0.5
 const PRIORITY: Record<PlaceLabel['kind'], number> = { storm: 0, region: 1, sea: 2, city: 3 };
 /** Margine tra etichette, in pixel. */
 const GAP = 6;
+/** Distanza dell'etichetta della tempesta sopra il punto, in pixel: l'occhio resta libero. */
+const STORM_OFFSET = 60;
 
 export interface Rect {
   x0: number;
@@ -85,14 +87,14 @@ export function createLabelLayer(container: HTMLElement, labels: PlaceLabel[]) {
         }
         // La tempesta: etichetta sopra il punto, per non coprire l'occhio.
         const above = item.el.dataset.anchor === 'above';
-        const top = above ? y - h - 34 : y - h / 2;
+        const top = above ? y - h - STORM_OFFSET : y - h / 2;
         const rect = { x0: left, y0: top, x1: left + w, y1: top + h };
         if (placed.some((r) => overlaps(r, rect))) {
           item.el.classList.add('is-hidden');
           continue;
         }
         placed.push(rect);
-        const dy = above ? 'calc(-100% - 34px)' : '-50%';
+        const dy = above ? `calc(-100% - ${STORM_OFFSET}px)` : '-50%';
         item.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(${start ? '0' : '-50%'}, ${dy})`;
         // Vicino all'orizzonte le etichette sfumano.
         item.el.style.opacity = String(Math.min(1, (facing - 0.05) * 6));

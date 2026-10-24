@@ -26,6 +26,20 @@ describe('Playback', () => {
     p.update(2);
     expect(p.time).toBe(10 * 60_000);
   });
+  it('EXPLORE usa la velocità scelta e ricomincia alla fine', () => {
+    const p = new Playback({ start: 0, end: H }, 24);
+    p.mode = 'explore';
+    p.loop = true;
+    p.replaySpeed = 30;
+    p.update(3);
+    expect(p.time).toBe(30 * 60_000);
+    let ended = false;
+    p.onEnd = () => (ended = true);
+    p.update(1.5);
+    expect(p.time).toBe(15 * 60_000);
+    expect(p.playing).toBe(true);
+    expect(ended).toBe(false);
+  });
   it('in pausa non avanza; seek resta nei limiti', () => {
     const p = new Playback({ start: 0, end: H }, 10);
     p.playing = false;

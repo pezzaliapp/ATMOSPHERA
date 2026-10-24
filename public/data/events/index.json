@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "events": [
+    {
+      "id": "milton-2024",
+      "title": "Uragano Milton",
+      "subtitle": "Golfo del Messico · ottobre 2024",
+      "manifest": "milton-2024/event.json"
+    }
+  ]
+}

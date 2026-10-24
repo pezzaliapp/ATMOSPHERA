@@ -1,6 +1,7 @@
 import { formatUtc } from '../core/clock';
 import { formatLat, formatLon } from '../core/geo';
 import type { PlaybackMode } from '../core/playback';
+import { VIEWPOINTS, type ViewpointId } from '../core/viewpoints';
 import { categoryLabel, compassIt, KT_TO_KMH, saffirSimpson, stormAt, type StormState, type StormTrack } from '../data/storm';
 import { categoryColor } from '../layers/track';
 import type { ThemePreference } from './theme';
@@ -27,6 +28,12 @@ export interface HudActions {
   onSeek: (u: number) => void;
   onSpeed: (minutesPerSecond: number) => void;
   onResumeDirector: () => void;
+  /** Da STORY a EXPLORE, conservando istante e inquadratura. */
+  onExplore: () => void;
+  onViewpoint: (id: ViewpointId) => void;
+  onFollow: () => void;
+  onExaggeration: (value: number) => void;
+  onNorth: () => void;
 }
 
 export interface SequenceRange {
@@ -53,6 +60,8 @@ export interface StoryCaptionView {
 }
 
 export const REPLAY_SPEEDS = [5, 10, 20, 30] as const;
+/** Esagerazioni verticali proposte in EXPLORE: ×1 è la scala reale. */
+export const EXAGGERATIONS = [1, 2] as const;
 
 export interface EventInfo {
   title: string;
@@ -60,6 +69,10 @@ export interface EventInfo {
   time: Date;
   localTimes: readonly { place: string; offsetHours: number; zone: string }[];
   exaggeration: number;
+  /** Nome del satellite delle osservazioni (es. GOES-16). */
+  satellite: string;
+  /** Dimensione di un pixel dei dati satellitari, in km. */
+  resolutionKm: number;
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(
@@ -95,6 +108,11 @@ function badge(kind: Provenance, short = true): HTMLElement {
   b.setAttribute('aria-label', PROVENANCE_LABEL[kind]);
   return b;
 }
+
+const MODE_ICON: Record<PlaybackMode, IconName> = { story: 'film', explore: 'compass', replay: 'history' };
+const MODE_LABEL: Record<PlaybackMode, string> = { story: t.modeStory, explore: t.modeExplore, replay: t.modeReplay };
+const MODE_TITLE: Record<PlaybackMode, string> = { story: t.storyMode, explore: t.exploreMode, replay: t.replayMode };
+const MODE_ANNOUNCE: Record<PlaybackMode, string> = { story: t.announceStory, explore: t.announceExplore, replay: t.announceReplay };
 
 const THEME_LABEL: Record<ThemePreference, string> = { auto: t.themeAuto, light: t.themeLight, dark: t.themeDark };
 const THEME_ICON: Record<ThemePreference, IconName> = { auto: 'theme-auto', light: 'sun', dark: 'moon' };
@@ -190,6 +208,7 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   const modeButtons = new Map<PlaybackMode, HTMLButtonElement>();
   for (const [label, mode, title] of [
     [t.modeStory, 'story', t.storyMode],
+    [t.modeExplore, 'explore', t.exploreMode],
     [t.modeReplay, 'replay', t.replayMode],
   ] as const) {
     const b = el('button', 'modes__item', label);
@@ -252,12 +271,8 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
     wrap.append(input, el('span', undefined, label));
     toggles.append(wrap);
   }
-  legendBody.append(
-    legendRow('observed', t.legendObserved),
-    legendRow('reconstructed', t.legendReconstructed),
-    legendRow('illustrative', t.legendIllustrative.replace('{x}', String(event.exaggeration))),
-    toggles,
-  );
+  const illustrativeRow = legendRow('illustrative', t.legendIllustrative.replace('{x}', String(event.exaggeration)));
+  legendBody.append(legendRow('observed', t.legendObserved), legendRow('reconstructed', t.legendReconstructed), illustrativeRow, toggles);
   legend.append(summary, legendBody);
 
   // Riproduzione: comandi, istante rappresentato, pressione al centro e cursore.
@@ -268,7 +283,11 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   const clock = el('div', 'timeline__clock');
   const clockTime = el('strong', 'timeline__time');
   const clockFrame = el('span', 'timeline__frame');
-  clock.append(clockTime, clockFrame);
+  // Modalità corrente, sempre visibile accanto all'ora: icona e nome diversi per ciascuna.
+  const modeTag = el('span', 'mode-tag');
+  const clockRow = el('div', 'timeline__clockrow');
+  clockRow.append(modeTag, clockTime);
+  clock.append(clockRow, clockFrame);
   const speeds = el('div', 'timeline__speeds');
   speeds.setAttribute('role', 'group');
   speeds.setAttribute('aria-label', t.speed);
@@ -287,8 +306,15 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   director.append(icon('camera'), el('span', undefined, t.resumeDirector));
   director.addEventListener('click', actions.onResumeDirector);
   director.hidden = true;
+  const exploreButton = el('button', 'timeline__director timeline__explore');
+  exploreButton.type = 'button';
+  exploreButton.title = t.exploreSceneHint;
+  exploreButton.setAttribute('aria-label', t.exploreScene);
+  exploreButton.append(icon('compass'), el('span', 'timeline__explore-long', t.exploreScene), el('span', 'timeline__explore-short', t.modeExplore));
+  exploreButton.addEventListener('click', actions.onExplore);
+  exploreButton.hidden = true;
   const timelineHead = el('div', 'timeline__head');
-  timelineHead.append(playButton, clock, speeds, director);
+  timelineHead.append(playButton, clock, speeds, director, exploreButton);
 
   const chart = pressureChart(track, range);
   const scrub = el('div', 'timeline__scrub');
@@ -314,6 +340,84 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   const captionText = el('p', 'story-caption__text');
   caption.append(captionTitle, captionText, el('p', 'story-caption__source', t.storySource));
   caption.hidden = true;
+
+  // EXPLORE: seguire l'occhio, inquadrature, rilievo, orientamento.
+  const explore = el('section', 'explore');
+  explore.setAttribute('aria-label', t.exploreMode);
+  explore.hidden = true;
+  const exploreBar = el('div', 'explore__bar');
+  const followButton = el('button', 'explore__chip explore__follow');
+  followButton.type = 'button';
+  followButton.title = t.followHint;
+  followButton.setAttribute('aria-pressed', 'false');
+  followButton.append(icon('target'), el('span', undefined, t.follow), badge('reconstructed'));
+  followButton.addEventListener('click', actions.onFollow);
+  const views = el('div', 'explore__group');
+  views.setAttribute('role', 'group');
+  views.setAttribute('aria-label', t.viewpoints);
+  const VIEW_LABEL: Record<ViewpointId, [string, string]> = {
+    eye: [t.viewEye, t.viewEyeHint],
+    eyewall: [t.viewEyewall, t.viewEyewallHint],
+    whole: [t.viewWhole, t.viewWholeHint],
+    satellite: [t.viewSatellite, t.viewSatelliteHint],
+    horizon: [t.viewHorizon, t.viewHorizonHint],
+  };
+  const viewButtons = new Map<ViewpointId, HTMLButtonElement>();
+  // Sui telefoni le inquadrature sono un selettore nativo: compatto e accessibile.
+  const viewSelectWrap = el('label', 'explore__select');
+  const viewSelect = el('select');
+  viewSelect.setAttribute('aria-label', t.viewpoints);
+  const placeholder = el('option', undefined, t.viewpointFree);
+  placeholder.value = '';
+  viewSelect.append(placeholder);
+  for (const id of VIEWPOINTS) {
+    const [label, hint] = VIEW_LABEL[id];
+    const text = label.replace('{sat}', event.satellite);
+    const b = el('button', 'explore__chip', text);
+    b.type = 'button';
+    b.title = hint.replace('{sat}', event.satellite);
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => actions.onViewpoint(id));
+    views.append(b);
+    viewButtons.set(id, b);
+    const option = el('option', undefined, text);
+    option.value = id;
+    viewSelect.append(option);
+  }
+  viewSelect.addEventListener('change', () => {
+    if (viewSelect.value) actions.onViewpoint(viewSelect.value as ViewpointId);
+  });
+  viewSelectWrap.append(icon('camera'), viewSelect);
+  const relief = el('div', 'explore__group explore__relief');
+  relief.setAttribute('role', 'group');
+  relief.setAttribute('aria-label', t.relief);
+  relief.title = t.reliefHint;
+  relief.append(el('span', 'explore__label', t.relief));
+  const reliefButtons = EXAGGERATIONS.map((x) => {
+    const b = el('button', 'explore__chip explore__chip--small', `×${x}`);
+    b.type = 'button';
+    b.setAttribute('aria-pressed', 'false');
+    b.title = x === 1 ? t.reliefTrue : t.reliefExaggerated.replace('{x}', String(x));
+    b.addEventListener('click', () => actions.onExaggeration(x));
+    relief.append(b);
+    return b;
+  });
+  relief.append(badge('reconstructed'));
+  const compass = el('button', 'explore__compass');
+  compass.type = 'button';
+  compass.title = t.north;
+  compass.setAttribute('aria-label', t.north);
+  const needle = icon('north');
+  compass.append(needle);
+  compass.addEventListener('click', actions.onNorth);
+  exploreBar.append(viewSelectWrap, followButton, views, relief, compass);
+  const detail = el(
+    'p',
+    'explore__note',
+    t.detailLimit.replace('{sat}', event.satellite).replace('{km}', event.resolutionKm.toFixed(1).replace('.', ',')),
+  );
+  detail.hidden = true;
+  explore.append(detail, exploreBar);
 
   // Comandi di navigazione
   const nav = el('nav', 'view-controls');
@@ -377,7 +481,7 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   toast.setAttribute('role', 'status');
   toast.hidden = true;
 
-  root.append(intro, header, card, legend, caption, timeline, nav, hint, dialog, toast);
+  root.append(intro, header, card, legend, caption, explore, timeline, nav, hint, dialog, toast);
 
   const updateOnline = () => {
     status.hidden = navigator.onLine;
@@ -395,9 +499,10 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   let lastPlaying: boolean | null = null;
   let lastSpeed = -1;
   let lastCaption = '';
+  let lastHeading = Number.NaN;
   const hhmm = (d: Date) => formatUtc(d).time.slice(0, 5);
 
-  const panels = [header, card, legend, caption, intro, timeline, nav, toast];
+  const panels = [header, card, legend, caption, intro, explore, timeline, nav, toast];
   return {
     hideHint,
     /** Rettangoli dei pannelli visibili (coordinate della scena), per tenere libere le etichette. */
@@ -417,7 +522,8 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
       const f = formatUtc(view.time);
       const clockText = `${f.date} · ${f.time} ${t.utc}`;
       if (clockText !== lastClock) {
-        clockTime.textContent = clockText;
+        // La data è separata: sui telefoni, con i comandi di velocità, si nasconde.
+        clockTime.replaceChildren(el('span', 'timeline__date', `${f.date} · `), `${f.time} ${t.utc}`);
         lastClock = clockText;
       }
       const frameText = view.observed
@@ -434,8 +540,14 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
       if (document.activeElement !== slider) slider.value = String(Math.round(view.progress * 1000));
       if (view.mode !== lastMode) {
         for (const [mode, b] of modeButtons) b.setAttribute('aria-pressed', String(mode === view.mode));
-        speeds.hidden = view.mode !== 'replay';
+        modeTag.replaceChildren(icon(MODE_ICON[view.mode]), el('span', undefined, MODE_LABEL[view.mode]));
+        modeTag.title = MODE_TITLE[view.mode];
+        modeTag.dataset.mode = view.mode;
+        speeds.hidden = view.mode === 'story';
+        exploreButton.hidden = view.mode !== 'story';
+        explore.hidden = view.mode !== 'explore';
         timeline.dataset.mode = view.mode;
+        root.dataset.mode = view.mode;
         lastMode = view.mode;
       }
       if (view.playing !== lastPlaying) {
@@ -470,6 +582,33 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
     },
     setIntro(visible: boolean) {
       intro.classList.toggle('is-visible', visible);
+    },
+    /** Inquadratura scelta (evidenziata), o null se la camera è stata mossa a mano. */
+    setViewpoint(id: ViewpointId | null) {
+      for (const [key, b] of viewButtons) b.setAttribute('aria-pressed', String(key === id));
+      viewSelect.value = id ?? '';
+    },
+    /** Breve avviso al cambio di modalità: che cosa si sta guardando. */
+    announceMode(mode: PlaybackMode) {
+      this.showToast(MODE_ANNOUNCE[mode].replace('{sat}', event.satellite));
+    },
+    setFollow(on: boolean) {
+      followButton.setAttribute('aria-pressed', String(on));
+    },
+    setExaggeration(value: number) {
+      reliefButtons.forEach((b, k) => b.setAttribute('aria-pressed', String(EXAGGERATIONS[k] === value)));
+      illustrativeRow.lastElementChild!.textContent = t.legendIllustrative.replace('{x}', String(value));
+    },
+    /** Bussola: l'ago punta al nord geografico sullo schermo. */
+    setHeading(degrees: number) {
+      const rounded = Math.round(degrees);
+      if (rounded === lastHeading) return;
+      lastHeading = rounded;
+      needle.style.transform = `rotate(${-rounded}deg)`;
+    },
+    /** Avviso quando la camera è al dettaglio massimo consentito dai dati. */
+    setDetailLimit(atLimit: boolean) {
+      detail.hidden = !atLimit;
     },
     /** Pulsante «Riprendi regia»: visibile in STORY quando l'utente ha preso la camera. */
     setDirector(available: boolean) {

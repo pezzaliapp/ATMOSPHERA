@@ -134,6 +134,7 @@ button {
 .legend,
 .timeline,
 .view-controls,
+.explore__bar,
 .toast {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -149,6 +150,7 @@ button {
   .legend,
   .timeline,
   .view-controls,
+  .explore__bar,
   .toast {
     background: var(--surface-strong);
   }
@@ -715,6 +717,166 @@ button {
   vector-effect: non-scaling-stroke;
 }
 
+/* EXPLORE: inquadrature e strumenti, sopra la timeline */
+.explore {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--bottom) + var(--timeline-h) + 12px);
+  transform: translateX(-50%);
+  max-width: calc(100vw - 2 * var(--gutter));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+}
+
+.explore__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px;
+  border-radius: 999px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.explore__bar::-webkit-scrollbar {
+  display: none;
+}
+
+.explore__group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 6px;
+  border-left: 1px solid var(--border);
+}
+
+.explore__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.explore__chip:hover {
+  background: var(--border);
+}
+
+.explore__chip .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.explore__chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.explore__chip--small {
+  padding: 5px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.explore__label {
+  margin-right: 2px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.explore__relief .badge {
+  margin-left: 2px;
+}
+
+.explore__compass {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-left: 2px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.explore__compass .icon {
+  transition: transform 0.15s linear;
+}
+
+.explore__note {
+  margin: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  font-size: 0.72rem;
+}
+
+.timeline__explore {
+  margin-left: auto;
+}
+
+.timeline__clockrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Modalità corrente: icona e nome, accanto all'ora rappresentata. */
+.mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mode-tag .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.mode-tag[data-mode='replay'] {
+  background: transparent;
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.mode-tag[data-mode='explore'] {
+  background: var(--text);
+  color: var(--surface-strong);
+}
+
+/* Selettore delle inquadrature: solo sui telefoni (sotto, nella media query). */
+.explore__select {
+  display: none;
+}
+
+.timeline__explore-short {
+  display: none;
+}
+
 /* Didascalie del racconto */
 .story-caption {
   position: absolute;
@@ -838,7 +1000,6 @@ button {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 2px 8px;
-  margin-top: -26px;
   border-radius: 6px;
   background: rgb(208 52 154 / 0.92);
   text-shadow: none;
@@ -859,6 +1020,13 @@ button {
   pointer-events: none;
   transition: opacity 0.6s ease;
   z-index: 2;
+}
+
+/* In EXPLORE il suggerimento sta sopra la barra delle inquadrature (sui telefoni è in alto). */
+@media (min-width: 761px) {
+  #app[data-mode='explore'] .gesture-hint {
+    bottom: calc(var(--bottom) + var(--timeline-h) + 70px);
+  }
 }
 
 .gesture-hint.is-hidden {
@@ -1094,6 +1262,115 @@ button {
     display: none;
   }
 
+  /* EXPLORE su telefono: barra a tutta larghezza, scheda evento compatta sopra la barra. */
+  .explore {
+    left: var(--gutter);
+    right: var(--gutter-r);
+    transform: none;
+    max-width: none;
+    align-items: stretch;
+  }
+
+  /* Su telefono: due righe senza scorrimento. Inquadratura (selettore) e bussola sopra,
+     «Segui l'occhio» e rilievo sotto. */
+  .explore__bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px 8px;
+    padding: 6px;
+    border-radius: 14px;
+    overflow: visible;
+  }
+
+  .explore__group:not(.explore__relief) {
+    display: none;
+  }
+
+  .explore__select {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+  }
+
+  .explore__select .icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+  }
+
+  .explore__select select {
+    flex: 1;
+    min-width: 0;
+    min-height: 40px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.86rem;
+  }
+
+  .explore__compass {
+    width: 40px;
+    height: 40px;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .explore__follow {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+    min-height: 40px;
+  }
+
+  .explore__relief {
+    grid-column: 2;
+    grid-row: 2;
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .explore__relief .explore__label {
+    display: none;
+  }
+
+  .explore__note {
+    align-self: center;
+  }
+
+  #app[data-mode='explore'] .event-card {
+    bottom: calc(var(--bottom) + var(--timeline-h) + 118px);
+  }
+
+  #app[data-mode='explore'] .event-card__rows {
+    display: none;
+  }
+
+  .timeline__explore .timeline__explore-short {
+    display: inline;
+  }
+
+  #app:not([data-mode='story']) .timeline__date {
+    display: none;
+  }
+
+  .timeline__clockrow {
+    gap: 6px;
+  }
+
+  .timeline__speed {
+    min-width: 26px;
+    padding: 4px 3px;
+  }
+
   .brand__beta {
     font-size: 0.56rem;
   }
@@ -1273,5 +1550,16 @@ button {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Telefoni stretti (≤ 400 px): la modalità nella timeline resta come icona, il nome è nell'intestazione. */
+@media (max-width: 400px) {
+  .mode-tag span {
+    display: none;
+  }
+
+  .mode-tag {
+    padding: 3px;
   }
 }

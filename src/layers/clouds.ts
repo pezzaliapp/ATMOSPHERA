@@ -171,6 +171,9 @@ export function createCloudLayer({ sequence, exaggeration, segments }: CloudLaye
     setVisible(visible: boolean) {
       mesh.visible = visible;
     },
+    setExaggeration(value: number) {
+      material.uniforms.exaggeration!.value = value;
+    },
     dispose() {
       geometry.dispose();
       material.dispose();

@@ -1,22 +1,16 @@
 import './styles.css';
-import { SRGBColorSpace, Vector3 } from 'three';
-import { subsolarPoint } from './core/astro';
+import { loadEvent, type LoadedEvent } from './app/load-event';
+import { formatRoute, parseRoute } from './app/route';
+import { createEventScene } from './app/scene';
 import { cameraAt } from './core/camera-path';
 import { lerpState, type CameraState } from './core/camera-pose';
 import { CameraRig } from './core/camera-rig';
 import { Engine } from './core/engine';
-import { latLonToVector } from './core/geo';
 import { Playback, type PlaybackMode } from './core/playback';
-import type { SequenceIndex } from './data/sequence';
-import { stormAt, type StormTrack } from './data/storm';
-import { MILTON_2024 as EVENT } from './events/milton-2024';
-import { createAtmosphere } from './globe/atmosphere';
-import { createEarth } from './globe/earth';
-import { createStars } from './globe/stars';
+import { viewpoint } from './core/viewpoints';
+import { stormAt } from './data/storm';
 import { createCloudSequence } from './layers/cloud-sequence';
-import { createCloudLayer } from './layers/clouds';
 import { createLabelLayer } from './layers/labels';
-import { createTrackLayer } from './layers/track';
 import { registerServiceWorker } from './pwa/register';
 import { createHud, showFatalError, type StoryCaptionView } from './ui/hud';
 import { t } from './ui/i18n';
@@ -38,13 +32,10 @@ function hideLoader(): void {
   window.setTimeout(remove, 800);
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`${response.status} ${url}`);
-  return (await response.json()) as T;
-}
-
 const easeInOut = (f: number) => (f < 0.5 ? 4 * f * f * f : 1 - (-2 * f + 2) ** 3 / 2);
+
+/** Durata dei voli verso le inquadrature di EXPLORE, in ms. */
+const VIEW_FLIGHT_MS = 1800;
 
 async function start(): Promise<void> {
   let engine: Engine;
@@ -57,37 +48,22 @@ async function start(): Promise<void> {
   }
   canvas.addEventListener('atmosphera:contextlost', () => showFatalError(app, t.errorContextLost));
 
-  const base = import.meta.env.BASE_URL;
-  const data = `${base}${EVENT.dataPath}`;
-  const seqUrl = `${base}${EVENT.sequencePath}`;
-  const size = engine.quality.textureSize;
-
-  let track: StormTrack;
-  let index: SequenceIndex;
-  let textures;
+  const route = parseRoute(location.hash);
+  let event: LoadedEvent;
   try {
-    [track, index] = await Promise.all([
-      fetchJson<StormTrack>(`${data}track.json`),
-      fetchJson<SequenceIndex>(`${seqUrl}frames.json`),
-    ]);
-    textures = await engine.loadTextures(
-      [
-        { url: `${base}textures/earth-day-${size}.jpg`, colorSpace: SRGBColorSpace },
-        { url: `${base}textures/earth-night-${size}.jpg`, colorSpace: SRGBColorSpace },
-        { url: `${data}surface.jpg`, colorSpace: SRGBColorSpace },
-      ],
-      (f) => loaderBar.style.setProperty('--progress', String(f * 0.6)),
+    event = await loadEvent(engine, import.meta.env.BASE_URL, route.eventId, (f) =>
+      loaderBar.style.setProperty('--progress', String(f * 0.6)),
     );
   } catch {
     hideLoader();
     showFatalError(app, t.errorTextures);
     return;
   }
-  const [dayMap, nightMap, surface] = textures as [(typeof textures)[0], (typeof textures)[0], (typeof textures)[0]];
+  const { manifest, track } = event;
 
-  const sequence = createCloudSequence(index, seqUrl);
+  const sequence = createCloudSequence(event.index, event.sequenceUrl);
   const times = sequence.times;
-  const playback = new Playback({ start: times[0]!, end: times.at(-1)! }, EVENT.story.seconds, Date.parse(EVENT.story.start));
+  const playback = new Playback({ start: times[0]!, end: times.at(-1)! }, manifest.story.seconds, Date.parse(manifest.story.start));
   try {
     // La riproduzione parte appena sono pronti i primi fotogrammi.
     await sequence.whenReady(playback.time);
@@ -98,37 +74,14 @@ async function start(): Promise<void> {
   }
   loaderBar.style.setProperty('--progress', '1');
 
-  const b = index.bounds;
-  const bounds: [number, number, number, number] = [b.west, b.south, b.east, b.north];
-  const q = engine.quality;
-
-  // Scena
-  const earth = createEarth({
-    dayMap,
-    nightMap,
-    segments: q.sphereSegments,
-    region: { surface, clouds: sequence, bounds, exaggeration: EVENT.cloudExaggeration },
-  });
-  const clouds = createCloudLayer({ sequence, exaggeration: EVENT.cloudExaggeration, segments: q.cloudSegments });
-  const atmosphere = createAtmosphere(q.sphereSegments / 2);
-  const stars = createStars();
-  const trackLayer = createTrackLayer(track, new Date(playback.time), q.pixelRatio);
-  engine.scene.add(stars.points, earth.mesh, clouds.mesh, atmosphere.mesh, trackLayer.group);
-
-  const sun = new Vector3();
-  const setSun = (time: Date) => {
-    const s = subsolarPoint(time);
-    sun.set(...latLonToVector(s.lat, s.lon));
-    earth.setSunDirection(sun);
-    clouds.setSunDirection(sun);
-    atmosphere.setSunDirection(sun);
-  };
+  const scene = createEventScene(engine, event, sequence, playback.time);
+  const trackLayer = scene.track;
 
   // Camera: inquadratura diversa per schermi verticali.
   const portrait = () => canvas.clientWidth < canvas.clientHeight;
-  const home = () => (portrait() ? EVENT.cameraPortrait : EVENT.camera);
+  const home = () => (portrait() ? manifest.cameraPortrait : manifest.camera);
   const storyCamera = (u: number): CameraState => {
-    const s = cameraAt(EVENT.story.camera, u);
+    const s = cameraAt(manifest.story.camera, u);
     // In verticale lo schermo è stretto: camera un po' più lontana e meno inclinata.
     return portrait() ? { ...s, distance: s.distance * 1.25, tilt: s.tilt * 0.9 } : s;
   };
@@ -136,8 +89,8 @@ async function start(): Promise<void> {
   const rig = new CameraRig(engine.camera, canvas, reducedMotion ? home() : storyCamera(0));
 
   const labels = createLabelLayer(app, [
-    ...EVENT.labels,
-    { text: track.name, lat: EVENT.camera.lat, lon: EVENT.camera.lon, kind: 'storm' as const },
+    ...manifest.labels,
+    { text: track.name, lat: manifest.camera.lat, lon: manifest.camera.lon, kind: 'storm' as const },
   ]);
 
   // Con «riduci movimento» nulla parte da solo: si apre sul primo istante, in pausa.
@@ -148,19 +101,62 @@ async function start(): Promise<void> {
   // Regia: attiva in STORY finché l'utente non prende la camera; «Riprendi regia» la riporta.
   let directing = !reducedMotion;
   let resume: { from: CameraState; start: number } | null = null;
+  // EXPLORE: camera centrata sull'occhio, esagerazione verticale scelta (solo in EXPLORE:
+  // STORY e REPLAY restano con quella dell'evento).
+  let following = false;
+  let exploreExaggeration = manifest.cloudExaggeration;
+  const applyRelief = (mode: PlaybackMode) => {
+    const value = mode === 'explore' ? exploreExaggeration : manifest.cloudExaggeration;
+    scene.setExaggeration(value);
+    hud.setExaggeration(value);
+  };
+  /** Dimensione di un pixel dei dati satellitari, in km (righe della griglia albedo). */
+  const b = event.index.bounds;
+  const dataPixelKm = ((b.north - b.south) / event.index.albedoSize[1]) * 111.2;
+  /** Oltre questo ingrandimento (pixel di schermo per pixel dei dati) i dettagli non sono osservati. */
+  const MAX_MAGNIFICATION = 6;
+  const magnification = () => {
+    const fov = (engine.camera.fov * Math.PI) / 180;
+    const kmPerCssPixel = (2 * rig.state.distance * 6371 * Math.tan(fov / 2)) / Math.max(1, canvas.clientHeight);
+    return dataPixelKm / kmPerCssPixel;
+  };
 
-  const setMode = (mode: PlaybackMode) => {
+  /** Posizione dell'occhio all'istante (best track interpolata: ricostruita tra i punti). */
+  const stormPosition = (ms: number) => {
+    const s = stormAt(track, new Date(ms));
+    return s ? { lat: s.lat, lon: s.lon } : { lat: rig.state.lat, lon: rig.state.lon };
+  };
+
+  const setFollowing = (on: boolean) => {
+    following = on;
+    hud.setFollow(on);
+  };
+
+  const setMode = (mode: PlaybackMode, announce = true) => {
+    const changed = mode !== playback.mode;
     playback.mode = mode;
+    // In EXPLORE il tempo ricomincia alla fine: si può esplorare senza fermarsi.
+    playback.loop = mode === 'explore';
     if (mode === 'story') {
       if (playback.time >= playback.range.end || playback.time < playback.storyRange.start) playback.restartStory();
       playback.playing = true;
+      setFollowing(false);
       if (!reducedMotion) {
         directing = true;
         resume = { from: { ...rig.state }, start: performance.now() };
       }
     } else {
       directing = false;
+      resume = null;
+      if (mode === 'explore' && playback.time >= playback.range.end) playback.seek(playback.range.start);
     }
+    if (mode !== 'explore') {
+      setFollowing(false);
+      hud.setViewpoint(null);
+    }
+    applyRelief(mode);
+    if (changed && announce) hud.announceMode(mode);
+    if (!CAPTURE) history.replaceState(null, '', formatRoute({ mode, eventId: manifest.id }));
     engine.invalidate();
   };
   playback.onEnd = () => {
@@ -168,23 +164,42 @@ async function start(): Promise<void> {
     if (playback.mode === 'story') setMode('replay');
   };
 
+  /** Segui l'occhio: la camera vola sull'occhio e poi resta centrata. */
+  const toggleFollow = () => {
+    if (playback.mode !== 'explore') setMode('explore');
+    const on = !following;
+    if (on) {
+      const p = stormPosition(playback.time);
+      rig.flyTo({ lat: p.lat, lon: p.lon }, 900);
+    }
+    setFollowing(on);
+    engine.invalidate();
+  };
+
+  const flyToView = (state: CameraState) => {
+    rig.flyTo(state, VIEW_FLIGHT_MS);
+    engine.invalidate();
+  };
+
   const hud = createHud(
     app,
     {
       onZoomIn: () => rig.zoomBy(0.75),
       onZoomOut: () => rig.zoomBy(1.33),
-      onReset: () => rig.flyTo(home(), 1600),
+      onReset: () => {
+        setFollowing(false);
+        rig.flyTo(home(), 1600);
+      },
       onToggleView: () => {
+        setFollowing(false);
         if (rig.isGlobe) rig.flyTo(home(), 2400);
-        else rig.flyTo({ ...EVENT.globe, lat: home().lat, lon: home().lon }, 2400);
+        else rig.flyTo({ ...manifest.globe, lat: home().lat, lon: home().lon }, 2400);
         hud.setView(rig.isGlobe);
       },
       onThemeCycle: () => theme.cycle(),
       onLayer: (layer, visible) => {
-        if (layer === 'clouds') {
-          clouds.setVisible(visible);
-          earth.setCloudShadows(visible);
-        } else if (layer === 'track') trackLayer.setVisible(visible);
+        if (layer === 'clouds') scene.setCloudsVisible(visible);
+        else if (layer === 'track') trackLayer.setVisible(visible);
         else labels.setVisible(visible);
         engine.invalidate();
       },
@@ -195,7 +210,7 @@ async function start(): Promise<void> {
         engine.invalidate();
       },
       onSeek: (u) => {
-        // Spostarsi nel tempo è un gesto da REPLAY: la regia si ferma.
+        // Spostarsi nel tempo durante il racconto è un gesto da REPLAY: la regia si ferma.
         if (playback.mode === 'story') setMode('replay');
         playback.seekProgress(u);
         engine.invalidate();
@@ -205,34 +220,92 @@ async function start(): Promise<void> {
         engine.invalidate();
       },
       onResumeDirector: () => setMode('story'),
+      onExplore: () => setMode('explore'),
+      onViewpoint: (id) => {
+        if (playback.mode !== 'explore') setMode('explore');
+        // Si mira dove sarà l'occhio alla fine del volo, così seguirlo non dà scatti.
+        const ahead = playback.playing ? (VIEW_FLIGHT_MS / 1000) * playback.minutesPerSecond * 60_000 : 0;
+        const at = Math.min(playback.range.end, playback.time + ahead);
+        flyToView(viewpoint(id, stormPosition(at), rig.state, manifest.satellite.lon));
+        setFollowing(true);
+        hud.setViewpoint(id);
+      },
+      onFollow: () => toggleFollow(),
+      onExaggeration: (value) => {
+        exploreExaggeration = value;
+        applyRelief(playback.mode);
+        engine.invalidate();
+      },
+      onNorth: () => {
+        rig.flyTo({ heading: 0 }, 900);
+        engine.invalidate();
+      },
     },
-    { ...EVENT, time: new Date(playback.time), exaggeration: EVENT.cloudExaggeration },
+    {
+      ...manifest,
+      time: new Date(playback.time),
+      exaggeration: manifest.cloudExaggeration,
+      satellite: manifest.satellite.name,
+      resolutionKm: dataPixelKm,
+    },
     track,
     { start: new Date(times[0]!), end: new Date(times.at(-1)!), observations: times.map((ms) => new Date(ms)) },
   );
   hud.setView(rig.isGlobe);
+  hud.setExaggeration(manifest.cloudExaggeration);
   // Titolo d'apertura: i primi secondi del racconto (o del primo avvio), fino al primo gesto.
   const INTRO_SECONDS = 4.2;
   const openedAt = performance.now();
   let introDismissed = false;
   const introVisible = (now: number) => {
     if (introDismissed) return false;
-    if (playback.mode === 'story') return playback.storyProgress * EVENT.story.seconds < INTRO_SECONDS;
-    return !CAPTURE && now - openedAt < INTRO_SECONDS * 1000;
+    if (playback.mode === 'story') return playback.storyProgress * manifest.story.seconds < INTRO_SECONDS;
+    // Con «riduci movimento» l'app si apre in REPLAY: il titolo compare comunque, per qualche secondo.
+    return reducedMotion && !CAPTURE && now - openedAt < INTRO_SECONDS * 1000;
   };
   rig.onUserInput = () => {
     introDismissed = true;
     hud.hideHint();
+    // Dopo un gesto la vista non è più l'inquadratura scelta.
+    hud.setViewpoint(null);
     if (directing) {
       directing = false;
       resume = null;
     }
   };
+  // Spostare a mano il punto osservato interrompe l'inseguimento dell'occhio.
+  rig.onPan = () => {
+    if (following) setFollowing(false);
+  };
+
+  // Tastiera (EXPLORE e REPLAY): frecce per ruotare e inclinare, + e − per lo zoom, F per seguire.
+  window.addEventListener('keydown', (e) => {
+    if (playback.mode === 'story' || e.altKey || e.ctrlKey || e.metaKey) return;
+    const target = e.target as HTMLElement | null;
+    if (target && (target.tagName === 'INPUT' || target.isContentEditable)) return;
+    const keys: Record<string, () => void> = {
+      ArrowLeft: () => rig.orbitBy(-8, 0),
+      ArrowRight: () => rig.orbitBy(8, 0),
+      ArrowUp: () => rig.orbitBy(0, 5),
+      ArrowDown: () => rig.orbitBy(0, -5),
+      '+': () => rig.zoomBy(0.8),
+      '=': () => rig.zoomBy(0.8),
+      '-': () => rig.zoomBy(1.25),
+      f: () => toggleFollow(),
+      F: () => toggleFollow(),
+    };
+    const action = keys[e.key];
+    if (!action) return;
+    e.preventDefault();
+    action();
+    hud.hideHint();
+    engine.invalidate();
+  });
 
   // La scena spaziale resta scura in entrambi i temi; il tema riguarda l'interfaccia.
   const theme = createThemeController((_, preference) => hud.setTheme(preference));
 
-  const captions = EVENT.story.captions.map((c) => ({ ...c, from: Date.parse(c.from) }));
+  const captions = manifest.story.captions.map((c) => ({ ...c, from: Date.parse(c.from) }));
   const captionAt = (ms: number): StoryCaptionView | null => {
     let current: StoryCaptionView | null = null;
     for (const c of captions) if (ms >= c.from) current = c;
@@ -245,11 +318,11 @@ async function start(): Promise<void> {
   let warnedNetwork = false;
   const syncScene = (now: number): boolean => {
     const time = new Date(playback.time);
-    // Nel racconto la miscela B-spline uniforma la nitidezza; in pausa in REPLAY le
-    // osservazioni compaiono pure.
-    const smoothing = playback.mode === 'replay' && !playback.playing ? 0 : 1;
+    // Nel racconto la miscela B-spline uniforma la nitidezza; in pausa in REPLAY ed EXPLORE
+    // le osservazioni compaiono pure.
+    const smoothing = playback.mode !== 'story' && !playback.playing ? 0 : 1;
     if (!sequence.setTime(playback.time, smoothing)) return false;
-    setSun(time);
+    scene.setSun(time);
     trackLayer.setTime(time);
     const minute = Math.floor(playback.time / 60_000);
     if (minute !== lastStormMinute) {
@@ -282,6 +355,9 @@ async function start(): Promise<void> {
         rig.set(lerpState(resume.from, target, easeInOut(f)));
         if (f >= 1) resume = null;
       } else rig.set(target);
+    } else if (following && !rig.isFlying) {
+      const p = stormPosition(playback.time);
+      rig.setCenter(p.lat, p.lon);
     }
     return true;
   };
@@ -307,12 +383,16 @@ async function start(): Promise<void> {
         wasGlobe = rig.isGlobe;
         hud.setView(wasGlobe);
       }
+      hud.setHeading(rig.state.heading);
+      hud.setDetailLimit(playback.mode === 'explore' && magnification() > MAX_MAGNIFICATION);
       return advanced || moved || playback.playing || resume !== null;
     });
   }
   engine.onAfterRender(() =>
     labels.update(engine.camera, canvas.clientWidth, canvas.clientHeight, rig.state.distance, hud.obstacles()),
   );
+  // Indirizzo iniziale: #/explore/<evento> apre direttamente l'esplorazione.
+  if (route.mode !== 'story' && !reducedMotion) setMode(route.mode, false);
   syncScene(performance.now());
   trackLayer.update(engine.camera, rig.state.distance);
 
@@ -321,7 +401,7 @@ async function start(): Promise<void> {
     playback.playing = false;
     Object.assign(window, {
       __atmosphera: {
-        storySeconds: EVENT.story.seconds,
+        storySeconds: manifest.story.seconds,
         range: playback.range,
         /** STORY al secondo s del racconto, con regia. */
         async story(s: number) {
@@ -329,7 +409,7 @@ async function start(): Promise<void> {
           directing = true;
           resume = null;
           const r = playback.storyRange;
-          playback.seek(r.start + ((r.end - r.start) * s) / EVENT.story.seconds);
+          playback.seek(r.start + ((r.end - r.start) * s) / manifest.story.seconds);
           await sequence.whenReady(playback.time);
           while (!syncScene(0)) await new Promise((r) => setTimeout(r, 20));
           trackLayer.update(engine.camera, rig.state.distance);

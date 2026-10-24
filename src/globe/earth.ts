@@ -160,6 +160,10 @@ export function createEarth({ dayMap, nightMap, segments, region }: EarthOptions
     setCloudShadows(enabled: boolean) {
       material.uniforms.cloudsEnabled!.value = enabled && region ? 1 : 0;
     },
+    /** Esagerazione verticale delle nuvole, per la lunghezza delle ombre. */
+    setCloudExaggeration(value: number) {
+      material.uniforms.cloudExaggeration!.value = value;
+    },
     dispose() {
       geometry.dispose();
       material.dispose();

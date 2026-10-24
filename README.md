@@ -11,6 +11,9 @@ La prima anteprima racconta undici ore dell'uragano Milton (7 ottobre 2024, dall
 tramonto sul Golfo del Messico), durante l'intensificazione fino alla categoria 5:
 
 - **STORY**: racconto accelerato di 24 secondi con regia della camera, all'apertura.
+- **EXPLORE**: camera libera sulla stessa scena, con la timeline: seguire l'occhio, inquadrature
+  (sopra l'occhio, parete, intero uragano, come il satellite, orizzonte), rilievo ×1 o ×2,
+  bussola, doppio clic per centrare, tastiera (frecce, + e −, F).
 - **REPLAY**: riproduzione scientifica a 5, 10, 20 o 30 minuti al secondo, con l'ora reale
   di ogni osservazione e l'indicazione dei fotogrammi interpolati.
 - **LIVE** e altri eventi: in sviluppo, non ancora disponibili.
@@ -22,6 +25,16 @@ NASA. Ogni grandezza è marcata come osservata, ricostruita o illustrativa. Dett
 
 Nessun account, cookie, tracciamento o pubblicità. App statica (PWA) installabile, utilizzabile
 offline dopo la prima visita completa.
+
+Indirizzi condivisibili: `#/story/milton-2024`, `#/explore/milton-2024`, `#/replay/milton-2024`.
+
+## Eventi
+
+Ogni evento è una cartella `public/data/events/<id>/` con un manifest `event.json` (luogo,
+periodo, satellite, fonti, regia e didascalie della STORY, etichette) e i suoi dati (traccia,
+superficie, sequenza satellitare); il catalogo `public/data/events/index.json` li elenca.
+La struttura è verificata da `src/events/manifest.ts` e dai test. Aggiungere un evento non
+richiede modifiche al codice.
 
 ## Sviluppo
 

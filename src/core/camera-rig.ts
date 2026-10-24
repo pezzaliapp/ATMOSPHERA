@@ -1,5 +1,6 @@
-import { type PerspectiveCamera } from 'three';
+import { Vector3, type PerspectiveCamera } from 'three';
 import { cameraPose, clampState, lerpState, type CameraState } from './camera-pose';
+import { vectorToLatLon } from './geo';
 
 /**
  * Controller di camera originale per ATMOSPHERA.
@@ -8,6 +9,7 @@ import { cameraPose, clampState, lerpState, type CameraState } from './camera-po
  *   trascina con un dito / tasto sinistro → ruota attorno al punto osservato e inclina
  *   due dita / tasto destro / Maiusc + trascina → sposta il punto osservato
  *   pizzica / rotella → zoom
+ *   doppio clic / doppio tocco → centra il punto toccato
  * Lontano (vista globo): trascinare fa ruotare il pianeta.
  *
  * Lo stato visualizzato insegue lo stato obiettivo con uno smorzamento esponenziale;
@@ -31,8 +33,12 @@ export class CameraRig {
   private pinchStart: { dist: number; angle: number; mid: { x: number; y: number } } | null = null;
   private dragMode: 'orbit' | 'pan' | null = null;
   private interacting = false;
+  private lastTap: { time: number; x: number; y: number } | null = null;
+  private lastTouchFocus = -Infinity;
   /** Notificato alla prima interazione dell'utente. */
   onUserInput: (() => void) | null = null;
+  /** Notificato quando l'utente sposta il punto osservato (trascinamento, doppio tocco). */
+  onPan: (() => void) | null = null;
 
   constructor(
     private readonly camera: PerspectiveCamera,
@@ -47,6 +53,7 @@ export class CameraRig {
     element.addEventListener('pointercancel', this.onPointerUp);
     element.addEventListener('wheel', this.onWheel, { passive: false });
     element.addEventListener('contextmenu', this.onContextMenu);
+    element.addEventListener('dblclick', this.onDoubleClick);
     this.apply();
   }
 
@@ -56,6 +63,10 @@ export class CameraRig {
 
   get isGlobe(): boolean {
     return this.goal.distance >= GLOBE_THRESHOLD;
+  }
+
+  get isFlying(): boolean {
+    return this.flight !== null;
   }
 
   /** Volo animato verso uno stato. */
@@ -71,6 +82,23 @@ export class CameraRig {
     this.goal = clampState(state);
     this.current = { ...this.goal };
     this.apply();
+  }
+
+  /**
+   * Sposta il punto osservato senza cambiare direzione, inclinazione e distanza (es. per
+   * seguire l'occhio del ciclone). Il centro si aggiorna subito: nessun ritardo che oscilli.
+   */
+  setCenter(lat: number, lon: number): void {
+    if (this.flight) return;
+    this.goal = clampState({ ...this.goal, lat, lon });
+    this.current = { ...this.current, lat: this.goal.lat, lon: this.goal.lon };
+    this.apply();
+  }
+
+  /** Rotazione e inclinazione da tastiera, in gradi. */
+  orbitBy(dHeading: number, dTilt: number): void {
+    this.flight = null;
+    this.goal = clampState({ ...this.goal, heading: this.goal.heading + dHeading, tilt: this.goal.tilt + dTilt });
   }
 
   zoomBy(factor: number): void {
@@ -108,6 +136,7 @@ export class CameraRig {
     this.element.removeEventListener('pointercancel', this.onPointerUp);
     this.element.removeEventListener('wheel', this.onWheel);
     this.element.removeEventListener('contextmenu', this.onContextMenu);
+    this.element.removeEventListener('dblclick', this.onDoubleClick);
   }
 
   private apply(): void {
@@ -138,7 +167,38 @@ export class CameraRig {
     const east = (-dx * Math.cos(h) + dy * Math.sin(h)) * k;
     const cosLat = Math.max(0.2, Math.cos((this.goal.lat * Math.PI) / 180));
     this.goal = clampState({ ...this.goal, lat: this.goal.lat + north, lon: this.goal.lon + east / cosLat });
+    if (dx !== 0 || dy !== 0) this.onPan?.();
   }
+
+  /** Punto della superficie sotto un pixel dello schermo (sfera unitaria), se c'è. */
+  private pick(clientX: number, clientY: number): { lat: number; lon: number } | null {
+    const rect = this.element.getBoundingClientRect();
+    const ndc = new Vector3(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1, 0.5);
+    const origin = this.camera.position.clone();
+    const dir = ndc.unproject(this.camera).sub(origin).normalize();
+    const b = origin.dot(dir);
+    const disc = b * b - (origin.lengthSq() - 1);
+    if (disc < 0) return null;
+    const t = -b - Math.sqrt(disc);
+    if (t <= 0) return null;
+    const p = origin.addScaledVector(dir, t);
+    return vectorToLatLon([p.x, p.y, p.z]);
+  }
+
+  /** Vola sul punto toccato, avvicinandosi un poco. */
+  private focusAt(clientX: number, clientY: number): void {
+    const hit = this.pick(clientX, clientY);
+    if (!hit) return;
+    this.onUserInput?.();
+    this.onPan?.();
+    this.flyTo({ lat: hit.lat, lon: hit.lon, distance: this.goal.distance * 0.7 }, 1200);
+  }
+
+  private readonly onDoubleClick = (event: MouseEvent) => {
+    // Il tocco ha il suo riconoscimento (onPointerDown): si ignora il dblclick sintetico che segue.
+    if (performance.now() - this.lastTouchFocus < 800) return;
+    this.focusAt(event.clientX, event.clientY);
+  };
 
   private orbit(dx: number, dy: number): void {
     this.goal = clampState({
@@ -156,6 +216,18 @@ export class CameraRig {
   }
 
   private readonly onPointerDown = (event: PointerEvent) => {
+    if (event.pointerType === 'touch' && this.pointers.size === 0) {
+      // Doppio tocco: due tocchi brevi e vicini.
+      const now = performance.now();
+      const last = this.lastTap;
+      if (last && now - last.time < 320 && Math.hypot(event.clientX - last.x, event.clientY - last.y) < 30) {
+        this.lastTap = null;
+        this.lastTouchFocus = now;
+        this.focusAt(event.clientX, event.clientY);
+        return;
+      }
+      this.lastTap = { time: now, x: event.clientX, y: event.clientY };
+    }
     this.element.setPointerCapture(event.pointerId);
     this.pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     this.beginInput();
