@@ -69,6 +69,8 @@ export const commonGlsl = /* glsl */ `
   uniform float s23Vis;
   /** S2.5: oceano dinamico (numero di treni d'onda, 0 = oceano della S1.1–S2.4) e lampi localizzati. */
   uniform float s25Waves;
+  /** S2.5.1: oceano spettrale filtrato (numero di onde, 0 = oceano della S2.5). */
+  uniform float s251Ocean;
   uniform vec3 flashPos;
   uniform float flashPower;
   uniform float flashRange;
@@ -545,6 +547,110 @@ export const oceanFragment = /* glsl */ `
     return vec4(slope, norm > 0.0 ? h / norm : 0.0, comp);
   }
 
+  /** Rumore a gradiente 2D con hash intero (PCG 2D): continuo, senza periodo né blocchi; uscita ~[-0,7, 0,7]. */
+  uvec2 pcg2(uvec2 v) {
+    v = v * 1664525u + 1013904223u;
+    v.x += v.y * 1664525u; v.y += v.x * 1664525u;
+    v ^= v >> 16u;
+    v.x += v.y * 1664525u; v.y += v.x * 1664525u;
+    v ^= v >> 16u;
+    return v;
+  }
+  vec2 grad2(ivec2 c) {
+    uvec2 h = pcg2(uvec2(c + 1048576));
+    float a = float(h.x & 65535u) * (6.2831853 / 65536.0);
+    return vec2(cos(a), sin(a));
+  }
+  float gnoise(vec2 p) {
+    ivec2 i = ivec2(floor(p));
+    vec2 f = p - floor(p);
+    vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+    float a = dot(grad2(i), f), b = dot(grad2(i + ivec2(1, 0)), f - vec2(1.0, 0.0));
+    float c = dot(grad2(i + ivec2(0, 1)), f - vec2(0.0, 1.0)), d = dot(grad2(i + ivec2(1, 1)), f - vec2(1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+  }
+  /** Quantile gaussiano: x tale che P(Z > x) = p (Abramowitz-Stegun 26.2.23, errore < 5·10⁻⁴). */
+  float gaussQuantile(float p) {
+    float q = clamp(p, 1e-4, 0.9999);
+    float t = sqrt(-2.0 * log(min(q, 1.0 - q)));
+    float x = t - (2.515517 + 0.802853 * t + 0.010328 * t * t) / (1.0 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t);
+    return q < 0.5 ? x : -x;
+  }
+  /** Lunghezza del tratto [s0, s1] del raggio (o + s·d, piano xz) che sta dentro il cerchio di raggio R. */
+  float insideCircle(vec2 o, vec2 d, float R, float s0, float s1) {
+    float a = max(dot(d, d), 1e-8), b = dot(o, d), c = dot(o, o) - R * R;
+    float disc = b * b - a * c;
+    if (disc <= 0.0) return 0.0;
+    float q = sqrt(disc);
+    return max(0.0, min(s1, (-b + q) / a) - max(s0, (-b - q) / a));
+  }
+  /**
+   * S2.5.1: mare spettrale filtrato. Spettro di Pierson-Moskowitz discretizzato in N onde (N/2 bande di lunghezza
+   * in progressione geometrica da 1,6·λp, due direzioni per banda, direzioni FISSE nel mondo con dispersione cos² attorno al vento
+   * locale, ampiezze normalizzate all'altezza significativa). Per ogni pixel le onde più lunghe di ~6 volte
+   * l'impronta (anisotropa: allungata in vista radente) danno la normale; la pendenza di quelle più corte e della
+   * coda capillare (Cox-Munk) diventa rugosità della BRDF. Nessuna onda sotto il pixel → niente anelli né tessere,
+   * e lo stesso mare a tutte le quote (transizione continua dalla geometria alla rugosità).
+   * Uscita: x,y pendenza risolta; z varianza della pendenza non risolta; w creste (in deviazioni standard).
+   */
+  vec4 oceanSpectrum(vec2 xz, vec2 wdir, float U, float swellU, float confused, float fp, out float hNorm, out float resolvedFrac) {
+    // Onda dominante: mare di vento (λp ≈ 8,2·U²/g, limitata dal fetch dell'uragano a ~300 m) e, vicino
+    // all'occhio, onda lunga generata nella parete (mare confuso).
+    float Ue = max(U, swellU);
+    float lp = clamp(8.16 * Ue * Ue / 9.81, 25.0, 300.0) * 1e-3;
+    float Hs = min(0.0214 * Ue * Ue, 14.0) * 1e-3;
+    // Gruppi d'onda su scala chilometrica: il mare non è uniforme (visibile soprattutto dall'alto).
+    // (rumore procedurale: nessuna periodicità visibile anche da alta quota)
+    float z1 = gnoise(xz / 3.3 + 3.1) * 5.0, z2 = gnoise(xz / 0.93 + 7.7) * 5.0;
+    float groups = clamp(1.0 + 0.3 * z1 + 0.12 * z2, 0.4, 1.7);
+    // Creste curve, non rettilinee: lieve spostamento del dominio (gradiente < 0,1, nessuna piega).
+    vec2 q = xz + vec2(gnoise(xz / 2.3 + 11.3), gnoise(xz / 2.3 - 5.9)) * 0.16 + vec2(gnoise(xz / 0.6 + 2.2), gnoise(xz / 0.6 - 8.1)) * 0.03;
+    float N = s251Ocean;
+    // Un solo ciclo con ampiezze relative; la normalizzazione (energia totale ↔ Hs: Σ a²/2 = (Hs/4)²) si applica
+    // alla fine: pendenze e altezza sono lineari nell'ampiezza, le varianze quadratiche.
+    vec2 slope = vec2(0.0);
+    float h = 0.0, comp = 0.0, vRes = 0.0, vAll = 0.0, hVar = 0.0, cVar = 0.0, e = 0.0;
+    for (int i = 0; i < 32; i++) {
+      if (float(i) >= N) break;
+      float fi = float(i);
+      // Bande di lunghezza (rapporto 0,75) con due onde ciascuna a ±26° attorno a una direzione che ruota di banda
+      // in banda (angolo aureo): creste corte e irregolari come nel mare vivo, nessun reticolo.
+      float band = floor(fi * 0.5);
+      float L = lp * 1.6 * pow(0.75, band) * (mod(fi, 2.0) < 0.5 ? 1.0 : 0.87);
+      float ang = band * 2.39996 + 0.37 + (mod(fi, 2.0) < 0.5 ? 0.45 : -0.45);
+      vec2 D = vec2(cos(ang), sin(ang));
+      float al = max(dot(D, wdir), 0.0);
+      float sp = mix(al * al + 0.04, 0.5, confused);
+      float a = L * exp(-0.625 * sq(L / lp)) * sp;
+      e += 0.5 * a * a;
+      float k = 6.2831853 / L;
+      float sv = 0.5 * a * a * k * k;
+      vAll += sv;
+      float vis = smoothstep(3.0 * fp, 6.0 * fp, L);
+      if (vis <= 0.0) continue;
+      vRes += sv * vis * vis;
+      float ph = k * dot(D, q) - sqrt(9.81e-3 * k) * time + fi * 1.7;
+      float sn = sin(ph), cs = cos(ph);
+      float av = a * vis;
+      slope += D * (av * k * cs);
+      h += av * sn;
+      hVar += 0.5 * av * av;
+      // Creste ripide: dove la componente di compressione (∝ a·k·sin) è alta.
+      comp += av * k * sn;
+      cVar += 0.5 * av * av * k * k;
+    }
+    float scale = Hs * 0.25 / sqrt(max(e, 1e-12)) * groups;
+    slope *= scale;
+    vAll *= scale * scale;
+    vRes *= scale * scale;
+    // Coda capillare e onde non rappresentate: varianza totale delle pendenze di Cox-Munk (satura a ~0,06).
+    float mssCM = min(0.003 + 0.00512 * Ue, 0.06) * clamp(1.0 + 0.12 * z1, 0.75, 1.25);
+    float tail = max(mssCM - vAll, 0.25 * mssCM);
+    hNorm = hVar > 0.0 ? h / sqrt(hVar) : 0.0;
+    resolvedFrac = vRes / max(vAll + tail, 1e-9);
+    return vec4(slope, vAll - vRes + tail, cVar > 0.0 ? comp / sqrt(cVar) : 0.0);
+  }
+
   /**
    * Strisce di schiuma lungo le linee di flusso del vento (spirali logaritmiche con afflusso di ~20°).
    * Coordinate ψ = ln r + tan(α)·θ (costante lungo una linea di flusso) e θ, scalate perché il salto a
@@ -593,6 +699,18 @@ export const oceanFragment = /* glsl */ `
       n = normalize(up - vec3(ws2.x, 0.0, ws2.y) * 0.25 - vec3(gw.x, 0.0, gw.y));
     }
     float rough = clamp(0.07 + ws.z + 0.004 * speed, 0.07, 0.6);
+    // S2.5.1: mare spettrale filtrato (sostituisce tessiture e treni d'onda della S2.5 quando attivo).
+    bool spec = s251Ocean > 0.0;
+    float mss = 0.0, crestS = 0.0, hN = 0.0, resF = 0.0, fp = footprint;
+    if (spec) {
+      float confused = 1.0 - smoothstep(rmw * 2.5, 60.0, r);
+      // Impronta anisotropa: in vista radente il pixel copre molto più mare lungo la direzione di vista.
+      fp = footprint / max(abs(dot(d, up)), 0.04);
+      vec4 o = oceanSpectrum(P.xz, wdir, speed, vmax * 0.6 * confused, confused, fp, hN, resF);
+      n = normalize(up - vec3(o.x, 0.0, o.y));
+      mss = o.z;
+      crestS = o.w;
+    }
 
     // Luce che attraversa le nubi verso il Sole (densità di grande scala, senza dettaglio).
     float tauSun = 0.0;
@@ -625,7 +743,12 @@ export const oceanFragment = /* glsl */ `
     vec3 v = -d;
     float nv = max(dot(n, v), 0.001);
     float F = 0.02 + 0.98 * pow(1.0 - nv, 5.0);
+    // S2.5.1: Fresnel medio sulle pendenze non risolte (in vista radente il mare mosso mostra facce rivolte
+    // all'osservatore: riflette meno del vetro).
+    if (spec) F = 0.02 + 0.98 * pow(1.0 - min(1.0, sqrt(nv * nv + 0.6 * mss)), 5.0);
     vec3 refl = reflect(d, n);
+    // ...e riflette in media cielo più alto (più scuro all'orizzonte), come un mare reale.
+    if (spec) refl = normalize(refl + up * 0.4 * sqrt(mss));
     float ru = dot(refl, up);
     if (ru < 0.01) refl += up * (0.01 - ru) * 2.0;
     refl = normalize(refl);
@@ -633,26 +756,45 @@ export const oceanFragment = /* glsl */ `
     vec3 skyR = aerial(P + up * 0.002, refl, 1e5, 1.0, trR) + SKY_ISO * 0.4;
     // Sotto le nubi il mare riflette la loro base grigia.
     vec3 skyRefl = skyR * skyVis + vec3(0.2, 0.22, 0.25) * (diffuse + 0.04) * (1.0 - skyVis);
+    if (spec && eyeOpen > 0.0) {
+      // S2.5.1: nell'occhio i raggi riflessi bassi incontrano la parete (alta ~14 km), non il cielo: il mare
+      // riflette le nubi grigie della parete sotto il loro angolo di elevazione, il cielo solo sopra.
+      vec2 rd = normalize(refl.xz + vec2(1e-5, 0.0));
+      float bq = dot(P.xz, rd), cq = dot(P.xz, P.xz) - sq(eyeRadius(6.0));
+      float dWall = max(-bq + sqrt(max(bq * bq - cq, 0.0)), 0.3);
+      float wallSin = 14.0 / sqrt(14.0 * 14.0 + dWall * dWall);
+      float hits = 1.0 - smoothstep(wallSin - 0.06, wallSin + 0.06, ru);
+      vec3 wallCol = vec3(0.6, 0.63, 0.68) * (SUN_COLOR * max(sunDir.y, 0.0) * 0.35 + SKY_AMBIENT * 0.4);
+      skyRefl = mix(skyRefl, wallCol, hits * eyeOpen);
+    }
     vec3 hv = normalize(sunDir + v);
     float nh = max(dot(n, hv), 0.0);
     float a2 = rough * rough;
     float D = exp((nh * nh - 1.0) / (a2 * nh * nh)) / (PI * a2 * pow(nh, 4.0) + 1e-4);
+    if (spec) {
+      // Beckmann con la varianza delle pendenze non risolte: riflesso del Sole stabile, nessun puntino isolato.
+      float c2 = max(nh * nh, 1e-4);
+      D = exp(-(1.0 - c2) / (c2 * mss)) / (PI * mss * c2 * c2);
+    }
     float nl = max(dot(n, sunDir), 0.0);
     vec3 glint = SUN_COLOR * sunT * D * F * nl / (4.0 * nv * max(dot(up, sunDir), 0.05)) * direct;
 
     // Corpo dell'acqua: blu profondo del Golfo, variazioni lente di colore (approssimazione).
     float tint = texture(noiseTex, vec3(P.xz / 180.0, 0.31)).a;
     vec3 deep = mix(vec3(0.002, 0.012, 0.03), vec3(0.003, 0.02, 0.036), tint);
+    // S2.5.1: oceano aperto sotto cielo coperto: blu-verde scuro, poco saturo.
+    if (spec) deep = mix(vec3(0.004, 0.012, 0.021), vec3(0.005, 0.015, 0.024), tint);
     vec3 light = SUN_COLOR * sunT * max(dot(up, sunDir), 0.0) * direct + SKY_AMBIENT * skyVis + vec3(0.7) * diffuse;
     vec3 body = deep * light;
     // S2.5: le creste trasmettono un po' di luce (verde-azzurro): volume delle onde.
-    if (s25Waves > 0.0) body += vec3(0.004, 0.022, 0.026) * light * smoothstep(0.1, 0.9, gw.z) * smoothstep(8.0, 30.0, speed);
+    if (s25Waves > 0.0 && !spec) body += vec3(0.004, 0.022, 0.026) * light * smoothstep(0.1, 0.9, gw.z) * smoothstep(8.0, 30.0, speed);
+    if (spec) body += vec3(0.004, 0.016, 0.02) * light * smoothstep(0.3, 2.0, hN) * smoothstep(0.05, 0.4, resF) * smoothstep(6.0, 25.0, max(speed, vmax * 0.3));
 
     // Schiuma e strisce di spruzzi: crescono con il vento (copertura tipica, approssimazione).
     float foamCov = pow(smoothstep(9.0, 55.0, speed), 1.3) * 0.85;
     float streak = foamStreaks(P.xz, r);
     // Larghezza delle strisce ~ r/400: oltre il pixel si usa la copertura media.
-    float foamFine = 1.0 - smoothstep(0.3, 1.2, footprint / (r / 400.0 + 0.002));
+    float foamFine = 1.0 - smoothstep(0.3, 1.2, (spec ? fp : footprint) / (r / 400.0 + 0.002));
     float foam = clamp(foamCov * mix(0.55, smoothstep(0.55 - foamCov * 0.5, 0.75, streak), foamFine), 0.0, 1.0);
     if (s25Waves > 0.0) {
       // S2.5: creste che si rompono (compressione elevata) e schiuma trascinata dal vento nel tempo.
@@ -662,22 +804,61 @@ export const oceanFragment = /* glsl */ `
       float swell = smoothstep(0.15, 0.85, gw.z);
       foam = clamp(max(foam * (0.45 + 0.8 * spume) * mix(0.35, 1.25, swell), crest * (0.6 + 0.4 * spume)), 0.0, 1.0);
     }
+    if (spec) {
+      // S2.5.1: copertura delle creste bianche in funzione del vento (Monahan: W ≈ 3,8·10⁻⁶·U^3,41, satura in
+      // uragano), a chiazze su scala chilometrica e allungata nelle strisce del vento forte. Dove le onde sono
+      // risolte la schiuma sta sulle creste più ripide (soglia scelta per dare la stessa copertura); altrove
+      // resta la copertura media, senza tessiture ripetute.
+      float W = clamp(3.84e-6 * pow(speed, 3.41), 0.0, 0.45);
+      float patchy = clamp(1.0 + 0.35 * gnoise(P.xz / 2.6 + 4.4) * 5.0 + 0.15 * gnoise(P.xz / 0.8 - 1.7) * 5.0, 0.15, 1.7);
+      float strk = mix(1.0, mix(0.55, smoothstep(0.35, 0.8, streak) * 1.6, foamFine), smoothstep(18.0, 35.0, speed));
+      // Soglia filtrata: il campo della schiuma è la somma di componenti a varianza unitaria (creste delle onde
+      // risolte, frangenti di ~18 m e chiazze di ~50 m), ognuna pesata da quanto il pixel la risolve. La varianza
+      // delle componenti non risolte allarga la soglia: copertura attesa = Φ((campo − soglia)/√varianza persa).
+      // Vicino: frangenti piccoli e netti sulle creste; lontano: la stessa copertura media W, senza linee.
+      // W (Monahan) comprende la schiuma residua: i frangenti attivi (bianchi) sono ~1/3, il resto è schiuma grigia.
+      float Wl = clamp(W * patchy, 0.002, 0.6);
+      float thrCore = gaussQuantile(Wl * 0.35), thrRes = gaussQuantile(Wl);
+      float rf = smoothstep(0.08, 0.45, resF);
+      float v1 = smoothstep(1.5 * fp, 4.0 * fp, 0.018), v2 = smoothstep(1.5 * fp, 4.0 * fp, 0.05);
+      // gnoise ha deviazione standard 0,215 (misurata): × 4,65 → varianza unitaria.
+      float field = 0.8 * rf * crestS + 0.45 * v1 * gnoise(rot(P.xz, 0.7) / 0.018) * 4.65 + 0.4 * v2 * gnoise(rot(P.xz, 2.3) / 0.05 + 9.1) * 4.65;
+      float lost = 0.64 * (1.0 - rf * rf) + 0.2 * (1.0 - v1 * v1) + 0.16 * (1.0 - v2 * v2);
+      float sd = sqrt(max(lost, 0.02));
+      float core = 1.0 / (1.0 + exp(-1.702 * (field - thrCore) / sd));
+      float residue = 0.3 / (1.0 + exp(-1.702 * (field - thrRes) / sqrt(lost + 0.08)));
+      foam = clamp((core * 0.85 + residue * (1.0 - core)) * strk, 0.0, 0.9);
+    }
 
-    vec3 col = mix(body + skyRefl * F, vec3(0.6) * light * 0.8, foam) + glint * (1.0 - foam);
+    vec3 col = mix(body + skyRefl * F, vec3(0.6) * light * (spec ? 0.95 : 0.8), foam) + glint * (1.0 - foam);
     // S2.3: spruzzi marini (strappati dalle creste) solo dove il vento al suolo supera ~33 m/s (uragano):
     // velo chiaro sulla superficie, più evidente guardando radente da bassa quota.
     if (s23Vis > 0.5) {
-      float spray = smoothstep(33.0, 70.0, speed) * (1.0 - eyeOpen);
+      // S2.5.1: nessuna maschera netta sul raggio dell'occhio (disegnava una fascia): lo spruzzo segue il vento.
+      float spray = smoothstep(33.0, 70.0, speed) * (spec ? 1.0 : 1.0 - eyeOpen);
       float graze = 1.0 - smoothstep(0.0, 0.5, dot(-d, up));
       // S2.5: lo spruzzo è trasportato dalle raffiche (tessitura che scorre col vento), non un velo fisso.
       float sprayMove = 1.0;
-      if (s25Waves > 0.0) {
+      if (s25Waves > 0.0 || spec) {
         float g = texture(noiseTex, vec3((P.xz - wdir * time * speed * 1.2e-3) / 0.6, 0.29 + time * 0.01)).r;
         sprayMove = 0.25 + 1.5 * g * g;
+        // La tessitura dello spruzzo (~600 m) non deve ripetersi vista dall'alto: oltre ~20 m/pixel resta la media.
+        if (spec) sprayMove = mix(sprayMove, 0.75, smoothstep(0.005, 0.02, fp));
       }
-      col = mix(col, vec3(0.62, 0.66, 0.7) * light * 0.75, clamp(spray * (0.18 + 0.4 * graze) * sprayMove, 0.0, 0.8));
+      col = mix(col, vec3(0.62, 0.66, 0.7) * light * 0.75, clamp(spray * (spec ? 0.08 + 0.25 * graze : 0.18 + 0.4 * graze) * sprayMove, 0.0, 0.8));
     }
 
+    if (spec) {
+      // S2.5.1: cortina di pioggia della parete fino alla superficie. Senza, in vista radente si vedeva il mare
+      // lontano «sotto» la base della parete, con una linea netta all'orizzonte. Tratto del raggio sotto ~2 km
+      // dentro l'anello della parete (intersezione esatta, nessun campionamento), estinzione ~0,3/km.
+      float h0 = altitudeOf(cameraPos);
+      float sb = h0 > 2.0 ? t * (h0 - 2.0) / h0 : 0.0;
+      float s0 = max(sb, rainExt > 0.0 ? RAIN_RANGE : 0.0);
+      float Lw = insideCircle(cameraPos.xz, d.xz, rmw * 2.3, s0, t) - insideCircle(cameraPos.xz, d.xz, EYE_R0 + 1.5, s0, t);
+      vec3 curtain = vec3(0.62, 0.66, 0.72) * (SUN_COLOR * max(sunDir.y, 0.0) * 0.22 + SKY_AMBIENT * 0.45) / 4.5;
+      col = mix(col, curtain, 1.0 - exp(-0.3 * max(Lw, 0.0)));
+    }
     // Prospettiva aerea fino al mare; sotto le nubi la foschia bassa è in ombra.
     // S2.5: il lampo illumina il mare vicino (riflesso diffuso sotto la nube).
     col += flashLight(P + up * 1.5) * (0.04 + 0.2 * F);

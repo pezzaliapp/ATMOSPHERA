@@ -139,6 +139,7 @@ export function createStormScene(renderer: WebGLRenderer, milton: MiltonState, q
     s23Vis: { value: 0 },
     rainRange: { value: 25 },
     s25Waves: { value: 0 },
+    s251Ocean: { value: 0 },
     flashPos: { value: new Vector3() },
     flashPower: { value: 0 },
     flashRange: { value: 3 },
