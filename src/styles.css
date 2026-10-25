@@ -1624,6 +1624,46 @@ button {
   filter: brightness(1.05);
 }
 
+/* I due voli (CITY e STORM) stanno insieme, dopo le modalità del globo. */
+.modes__flights {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 4px;
+}
+
+.modes__flights .modes__item--flight {
+  margin-left: 0;
+  white-space: nowrap;
+}
+
+/* Schermi medi e telefoni in orizzontale: la barra resta su una riga accanto al marchio. «Live» (non ancora
+   disponibile) si nasconde e le voci dei voli mostrano solo «City» e «Storm» (nome completo nel titolo). */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .modes__item--soon,
+  .modes__flight-word {
+    display: none;
+  }
+
+  .modes__item {
+    padding: 6px 9px;
+    letter-spacing: 0.07em;
+  }
+}
+
+/* Sotto ~860 px il badge BETA resterebbe coperto dalla barra: si nasconde (il marchio resta leggibile). */
+@media (min-width: 761px) and (max-width: 860px) {
+  .brand__beta {
+    display: none;
+  }
+}
+
+/* STORM FLIGHT: stessi colori della sua schermata (CINEMA). */
+.modes__item--storm {
+  color: #06213a;
+  background: linear-gradient(180deg, #bfe3ff, #6fb7f0);
+  box-shadow: 0 1px 6px rgb(80 160 240 / 0.3);
+}
+
 /* Mentre si vola il globo resta in pausa, nascosto sotto il simulatore. */
 body.cf-on #app {
   display: none;
@@ -1689,14 +1729,18 @@ body.cf-on #app {
   }
 }
 
-/* Telefono: la riga delle modalità non ha spazio accanto alla legenda; CITY FLIGHT va su una riga sua,
-   sotto le modalità, e didascalie e avvisi scendono di conseguenza. */
+/* Telefono: la riga delle modalità non ha spazio accanto alla legenda; CITY FLIGHT e STORM FLIGHT vanno su
+   una riga loro, sotto le modalità, e didascalie e avvisi scendono di conseguenza. */
 @media (max-width: 760px) {
-  .modes__item--flight {
+  .modes__flights {
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
     margin-left: 0;
+    gap: 6px;
+  }
+
+  .modes__item--flight {
     padding: 7px 12px;
     font-size: 0.68rem;
   }

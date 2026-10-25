@@ -25,6 +25,16 @@ tramonto sul Golfo del Messico), durante l'intensificazione fino alla categoria 
   di ogni osservazione e l'indicazione dei fotogrammi interpolati.
 - **LIVE** e altri eventi: in sviluppo, non ancora disponibili.
 
+Due esperienze di volo, aperte dalla barra in alto:
+
+- **CITY FLIGHT**: sorvolo di una città dimostrativa al crepuscolo con APP UNIVERSE (le app
+  PezzaliAPP in finestre). Simulazione semplificata, scaricata solo al primo uso.
+- **STORM FLIGHT**: volo con il velivolo Concept C nell'uragano Milton fino all'occhio, in
+  **CINEMA** (regia automatica di ~2 minuti in otto scene) o **PILOTA**. Nubi volumetriche dagli
+  stessi dati GOES-16 e HURDAT2; oceano, precipitazioni, fulmini e audio sono ricostruzioni
+  illustrative, non osservazioni né una simulazione aeronautica. Pagina propria
+  (`storm-flight.html`, codice in `src/storm/`): all'uscita il browser libera GPU e audio.
+
 Dati: 35 osservazioni NOAA GOES-16 (una ogni 20 minuti), best track NOAA HURDAT2, superficie
 NASA. Ogni grandezza è marcata come osservata, ricostruita o illustrativa. Dettagli in
 [DATA_SOURCES.md](DATA_SOURCES.md); componenti di terze parti in
@@ -33,7 +43,8 @@ NASA. Ogni grandezza è marcata come osservata, ricostruita o illustrativa. Dett
 Nessun account, cookie, tracciamento o pubblicità. App statica (PWA) installabile, utilizzabile
 offline dopo la prima visita completa.
 
-Indirizzi condivisibili: `#/story/milton-2024`, `#/explore/milton-2024`, `#/replay/milton-2024`.
+Indirizzi condivisibili: `#/story/milton-2024`, `#/explore/milton-2024`, `#/replay/milton-2024`, `#/city-flight`,
+`/storm-flight.html`.
 
 ## Eventi
 

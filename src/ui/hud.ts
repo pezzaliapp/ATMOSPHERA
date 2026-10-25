@@ -13,6 +13,14 @@ import { icon, type IconName } from './icons';
  * legenda dati (osservato / ricostruito / illustrativo), traccia dell'intensità, comandi.
  */
 
+
+/** Etichetta di una voce di volo: «City» + « Flight»; la seconda parola sparisce sugli schermi medi (CSS). */
+function flightLabel(text: string): HTMLElement {
+  const [first = text, ...rest] = text.split(' ');
+  const label = el('span', undefined, first);
+  if (rest.length) label.append(el('span', 'modes__flight-word', ` ${rest.join(' ')}`));
+  return label;
+}
 export type Provenance = 'observed' | 'reconstructed' | 'illustrative';
 
 export interface HudActions {
@@ -38,6 +46,8 @@ export interface HudActions {
   onRender: (view: RenderView) => void;
   /** Apre il simulatore CITY FLIGHT. */
   onCityFlight: () => void;
+  /** Apre STORM FLIGHT (pagina propria: all'uscita il browser libera tutte le risorse). */
+  onStormFlight: () => void;
 }
 
 /** Visualizzazione delle nuvole in EXPLORE. */
@@ -236,9 +246,19 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   const flight = el('button', 'modes__item modes__item--flight');
   flight.type = 'button';
   flight.title = t.cityFlightTitle;
-  flight.append(icon('plane'), el('span', undefined, t.cityFlight));
+  flight.setAttribute('aria-label', t.cityFlight);
+  flight.append(icon('plane'), flightLabel(t.cityFlight));
   flight.addEventListener('click', () => actions.onCityFlight());
-  modes.append(live, flight);
+  // STORM FLIGHT: accanto a CITY FLIGHT, stessa forma, colori della sua pagina.
+  const storm = el('button', 'modes__item modes__item--flight modes__item--storm');
+  storm.type = 'button';
+  storm.title = t.stormFlightTitle;
+  storm.setAttribute('aria-label', t.stormFlight);
+  storm.append(icon('storm'), flightLabel(t.stormFlight));
+  storm.addEventListener('click', () => actions.onStormFlight());
+  const flights = el('span', 'modes__flights');
+  flights.append(flight, storm);
+  modes.append(live, flights);
 
   const status = el('span', 'status-pill', t.offline);
   status.setAttribute('role', 'status');

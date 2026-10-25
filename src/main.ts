@@ -269,6 +269,7 @@ async function start(): Promise<void> {
         engine.invalidate();
       },
       onCityFlight: () => cityFlight.enter(),
+      onStormFlight: () => location.assign('/storm-flight.html'),
       onRender: (view) => {
         if (view === 'volume' && !volumeAvailable) return;
         const changed = view !== renderView;

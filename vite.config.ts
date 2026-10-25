@@ -34,6 +34,13 @@ export default defineConfig({
     target: ['es2022', 'safari15', 'chrome100'],
     sourcemap: false,
     chunkSizeWarningLimit: 800,
+    // Due pagine della stessa PWA: il globo (con CITY FLIGHT) e STORM FLIGHT.
+    rollupOptions: {
+      input: {
+        index: 'index.html',
+        'storm-flight': 'storm-flight.html',
+      },
+    },
   },
   plugins: [
     contentSecurityPolicy(),
@@ -66,9 +73,9 @@ export default defineConfig({
         // Shell dell'app, texture 2k e dati dell'evento in precache: offline dal primo avvio.
         globPatterns: ['**/*.{js,css,html,svg,png}', 'textures/*-2k.jpg', 'data/**/*.{json,jpg}'],
         // Fotogrammi della sequenza: cache progressiva (sotto), non tutti al primo avvio.
-        // CITY FLIGHT: scaricato solo quando lo si apre (cache dopo il primo uso, sotto).
+        // CITY FLIGHT e STORM FLIGHT: scaricati solo quando li si apre (cache dopo il primo uso, sotto).
         // Le nuvole statiche di E0 non sono più usate dalla scena.
-        globIgnores: ['data/events/*/seq/*.{jpg,png}', 'data/events/*/clouds-*', 'assets/city-flight-*'],
+        globIgnores: ['data/events/*/seq/*.{jpg,png}', 'data/events/*/clouds-*', 'assets/city-flight-*', 'assets/storm-flight-*'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: `${BASE}index.html`,
         // I file di licenza (copiati da scripts/postbuild.mjs) si aprono come pagine:
@@ -95,6 +102,15 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: {
               cacheName: 'atmosphera-city-flight',
+              expiration: { maxEntries: 4 },
+            },
+          },
+          {
+            // STORM FLIGHT: script e stili della pagina, in cache dal primo uso (poi disponibile anche offline).
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && /\/assets\/storm-flight-[^/]+\.(js|css)$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'atmosphera-storm-flight',
               expiration: { maxEntries: 4 },
             },
           },

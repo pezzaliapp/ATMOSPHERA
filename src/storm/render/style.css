@@ -1,0 +1,31 @@
+:root { color-scheme: dark; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; --panel: rgb(8 12 20 / 0.62); --line: rgb(255 255 255 / 0.16); --fg: #eef2f7; --muted: #aeb8c6; --accent: #9fd0ff; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #05080d; color: var(--fg); overflow: hidden; }
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#scene:active { cursor: grabbing; }
+.sf-head { position: fixed; left: max(14px, env(safe-area-inset-left)); top: max(14px, env(safe-area-inset-top)); max-width: min(460px, calc(100vw - 28px)); padding: 10px 14px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.sf-head h1 { margin: 0; font-size: 14px; letter-spacing: 0.16em; }
+.sf-head p { margin: 3px 0 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
+.sf-head .sf-note { font-size: 11px; }
+.sf-views { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(18px, env(safe-area-inset-bottom)); display: flex; gap: 6px; padding: 6px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.sf-views button { font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: var(--fg); background: transparent; border: 1px solid transparent; border-radius: 999px; padding: 9px 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.sf-views button:hover { border-color: var(--line); }
+.sf-views button[aria-pressed='true'] { background: var(--accent); color: #04121f; }
+.sf-info { position: fixed; right: max(14px, env(safe-area-inset-right)); top: max(14px, env(safe-area-inset-top)); width: min(330px, calc(100vw - 28px)); font-size: 11.5px; line-height: 1.45; color: var(--muted); padding: 8px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.sf-info summary { cursor: pointer; color: var(--fg); font-weight: 600; font-size: 12px; }
+.sf-info ul { margin: 6px 0 0; padding-left: 16px; }
+.sf-info b { color: var(--fg); font-weight: 600; }
+.sf-tag { display: inline-block; font-size: 9.5px; font-weight: 700; padding: 0 5px; border-radius: 4px; margin-right: 4px; color: #06121e; }
+.sf-tag--doc { background: #8fe3b0; }
+.sf-tag--rec { background: #9fd0ff; }
+.sf-tag--app { background: #f3c48b; }
+.sf-status { margin-top: 4px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sf-loading { position: fixed; inset: 0; display: grid; place-content: center; text-align: center; gap: 8px; background: #05080d; font-size: 13px; color: var(--muted); }
+.sf-loading b { color: var(--fg); letter-spacing: 0.2em; font-size: 15px; }
+@media (max-width: 720px) {
+  .sf-info { top: auto; bottom: calc(max(18px, env(safe-area-inset-bottom)) + 62px); }
+  .sf-info:not([open]) { width: auto; }
+  .sf-views button { padding: 9px 10px; font-size: 11px; letter-spacing: 0.08em; }
+  .sf-head .sf-note { display: none; }
+}
+[hidden] { display: none !important; }

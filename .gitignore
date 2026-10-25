@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# Copie locali della produzione precedente (punto di ripristino), mai nel repository
+rollback-prod-*/
 dev-dist/
 coverage/
 *.log

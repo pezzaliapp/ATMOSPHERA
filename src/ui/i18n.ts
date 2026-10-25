@@ -42,6 +42,8 @@ export const it = {
   cityFlightLoading: 'Preparazione della città…',
   cityFlightUnavailable: 'CITY FLIGHT non è disponibile senza connessione finché non è stato aperto almeno una volta.',
   cityFlightBack: 'Torna ad ATMOSPHERA',
+  stormFlight: 'Storm Flight',
+  stormFlightTitle: 'STORM FLIGHT — vola nell’uragano Milton fino all’occhio, con CINEMA e PILOTA (ricostruzione illustrativa, non una simulazione aeronautica)',
 
   wind: 'Vento max',
   pressure: 'Pressione',
