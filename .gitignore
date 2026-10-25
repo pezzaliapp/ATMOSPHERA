@@ -14,3 +14,6 @@ data-raw/
 
 # Cache locale di Wrangler (Cloudflare)
 .wrangler/
+
+# Build di test di STORM FLIGHT (anteprima, mai in produzione)
+dist-storm-test/
