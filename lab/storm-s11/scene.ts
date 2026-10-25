@@ -138,6 +138,10 @@ export function createStormScene(renderer: WebGLRenderer, milton: MiltonState, q
     farReuse: { value: 0 },
     s23Vis: { value: 0 },
     rainRange: { value: 25 },
+    s25Waves: { value: 0 },
+    flashPos: { value: new Vector3() },
+    flashPower: { value: 0 },
+    flashRange: { value: 3 },
     fogJitter: { value: 0 },
     fineFade: { value: new Vector2(0.03, 0.12) },
     erodeFade: { value: new Vector2(1e3, 2e3) },
@@ -159,7 +163,7 @@ export function createStormScene(renderer: WebGLRenderer, milton: MiltonState, q
     reconSize: clouds.uniforms.reconSize!, historyValid: { value: 0 }, alphaNew: { value: 0.3 }, clampAmount: { value: 1 }, motionBlend: { value: quality.motionBlend ?? 0.25 }, motionSmooth: { value: quality.motionSmooth ?? 0 }, parallaxMode: { value: quality.parallaxMode ? 1 : 0 }, fogJitter: shared.fogJitter, fastMotion: { value: 0 }, s23Fix: { value: 0 }, cameraAlt: shared.cameraAlt, reconDiag: { value: +(new URLSearchParams(location.search).get('recondiag') || (new URLSearchParams(location.search).has('recondiag') ? 1 : 0)) },
     projectionInverse: shared.projectionInverse, cameraWorld: shared.cameraWorld,
   });
-  const composite = raw(compositeFragment, { oceanTex: { value: null }, cloudTex: { value: null }, exposure: { value: 1 }, frame: { value: 0 }, debugMode: { value: quality.debug ?? 0 }, flash: { value: 0 } }, simpleVertex);
+  const composite = raw(compositeFragment, { oceanTex: { value: null }, cloudTex: { value: null }, exposure: { value: 1 }, frame: { value: 0 }, debugMode: { value: quality.debug ?? 0 }, flash: { value: 0 }, flashNdc: { value: new Vector3() }, flashSize: { value: 0.1 }, flashGlow: { value: 0 }, aspect: { value: 1 } }, simpleVertex);
 
   const rtOptions = { type: HalfFloatType, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter } as const;
   const oceanRT = new WebGLRenderTarget(1, 1, rtOptions);

@@ -67,6 +67,18 @@ export const commonGlsl = /* glsl */ `
   uniform float rainExt;
   /** S2.3: base delle nubi più alta fuori dal CDO, cortine di pioggia sotto le bande, spruzzi marini (0 altrove). */
   uniform float s23Vis;
+  /** S2.5: oceano dinamico (numero di treni d'onda, 0 = oceano della S1.1–S2.4) e lampi localizzati. */
+  uniform float s25Waves;
+  uniform vec3 flashPos;
+  uniform float flashPower;
+  uniform float flashRange;
+  const vec3 FLASH_COLOR = vec3(0.72, 0.8, 1.0);
+  /** Luce del lampo in un punto: decrescita con la distanza e diffusione nella nube (approssimazione). */
+  vec3 flashLight(vec3 p) {
+    if (flashPower <= 0.0) return vec3(0.0);
+    float d = length(p - flashPos);
+    return FLASH_COLOR * flashPower * exp(-d / flashRange) / (1.0 + d * d / (flashRange * flashRange * 4.0));
+  }
   uniform vec3 rainColor;
   /** Portata del velo (km): 25 nella S2.2; nella S2.3 pochi km (oltre provvedono le cortine volumetriche). */
   uniform float rainRange;
@@ -499,6 +511,41 @@ export const oceanFragment = /* glsl */ `
   }
 
   /**
+   * S2.5: mare dinamico. Treni di onde di Gerstner su 12 direzioni FISSE nel mondo (una direzione che variasse
+   * nello spazio deformerebbe le fasi e disegnerebbe anelli): l'ampiezza di ciascuno dipende dall'allineamento con
+   * il vento locale (dispersione angolare in cos²) e dalla sua velocità; lunghezze 35–300 m, dispersione
+   * ω = √(g·k). Uscita: pendenze (xy), altezza normalizzata (z), compressione delle creste (w, per la schiuma).
+   * Ogni onda svanisce quando diventa più piccola del pixel (da alta quota resta la rugosità media).
+   */
+  vec4 oceanWaves(vec2 xz, vec2 wdir, float speed, float footprint, float confused) {
+    float Hs = min(0.0246 * speed * speed, 14.0) * 1e-3;
+    vec2 slope = vec2(0.0);
+    float h = 0.0, comp = 0.0, norm = 0.0;
+    for (int i = 0; i < 12; i++) {
+      if (float(i) >= s25Waves) break;
+      float fi = float(i);
+      float ang = fi * 2.39996 + 0.37;
+      vec2 D = vec2(cos(ang), sin(ang));
+      float align = max(dot(D, wdir), 0.0);
+      // Mare confuso (occhio e dintorni della parete): onde da tutte le direzioni.
+      float spread = mix(align * align, 0.55, confused);
+      float L = 0.035 * pow(8.5, fract(fi * 0.618 + 0.13));
+      float vis = 1.0 - smoothstep(L * 0.08, L * 0.35, footprint);
+      if (vis <= 0.0 || spread <= 0.01) continue;
+      float k = 6.2831853 / L;
+      float w = sqrt(9.81e-3 * k);
+      float a = Hs * 0.5 * spread * sqrt(L / 0.3) * vis;
+      float ph = k * dot(D, xz) - w * time + fi * 1.7;
+      float sn = sin(ph), cs = cos(ph);
+      slope += D * (a * k * cs);
+      h += a * sn;
+      comp += a * k * sn;
+      norm += a;
+    }
+    return vec4(slope, norm > 0.0 ? h / norm : 0.0, comp);
+  }
+
+  /**
    * Strisce di schiuma lungo le linee di flusso del vento (spirali logaritmiche con afflusso di ~20°).
    * Coordinate ψ = ln r + tan(α)·θ (costante lungo una linea di flusso) e θ, scalate perché il salto a
    * θ = ±π cada su un numero intero di periodi del rumore: nessuna cucitura.
@@ -531,6 +578,20 @@ export const oceanFragment = /* glsl */ `
     float speed = windSpeed(r);
     vec3 ws = waveSlope(P.xz, speed, footprint);
     vec3 n = normalize(up - vec3(ws.x, 0.0, ws.y) * 0.35);
+    // S2.5: onde di Gerstner animate, orientate dal vento ciclonico (afflusso ~20°).
+    vec2 radial2 = P.xz / max(r, 0.01);
+    vec2 wdir = normalize(vec2(radial2.y, -radial2.x) - 0.36 * radial2);
+    vec4 gw = vec4(0.0);
+    if (s25Waves > 0.0) {
+      // Nell'occhio il vento è debole ma il mare è molto agitato: onde generate nella parete che convergono
+      // da tutte le direzioni (mare «confuso»). Ricostruzione plausibile, non misurata.
+      float confused = 1.0 - smoothstep(rmw * 2.5, 60.0, r);
+      float waveSpeed = max(speed, vmax * 0.6 * confused);
+      gw = oceanWaves(P.xz, wdir, waveSpeed, footprint, confused);
+      // Il dettaglio fine della S1 scorre con il vento (nel tempo), le onde lunghe danno la forma.
+      vec3 ws2 = waveSlope(P.xz - wdir * time * 0.004, speed, footprint);
+      n = normalize(up - vec3(ws2.x, 0.0, ws2.y) * 0.25 - vec3(gw.x, 0.0, gw.y));
+    }
     float rough = clamp(0.07 + ws.z + 0.004 * speed, 0.07, 0.6);
 
     // Luce che attraversa le nubi verso il Sole (densità di grande scala, senza dettaglio).
@@ -584,6 +645,8 @@ export const oceanFragment = /* glsl */ `
     vec3 deep = mix(vec3(0.002, 0.012, 0.03), vec3(0.003, 0.02, 0.036), tint);
     vec3 light = SUN_COLOR * sunT * max(dot(up, sunDir), 0.0) * direct + SKY_AMBIENT * skyVis + vec3(0.7) * diffuse;
     vec3 body = deep * light;
+    // S2.5: le creste trasmettono un po' di luce (verde-azzurro): volume delle onde.
+    if (s25Waves > 0.0) body += vec3(0.004, 0.022, 0.026) * light * smoothstep(0.1, 0.9, gw.z) * smoothstep(8.0, 30.0, speed);
 
     // Schiuma e strisce di spruzzi: crescono con il vento (copertura tipica, approssimazione).
     float foamCov = pow(smoothstep(9.0, 55.0, speed), 1.3) * 0.85;
@@ -591,6 +654,14 @@ export const oceanFragment = /* glsl */ `
     // Larghezza delle strisce ~ r/400: oltre il pixel si usa la copertura media.
     float foamFine = 1.0 - smoothstep(0.3, 1.2, footprint / (r / 400.0 + 0.002));
     float foam = clamp(foamCov * mix(0.55, smoothstep(0.55 - foamCov * 0.5, 0.75, streak), foamFine), 0.0, 1.0);
+    if (s25Waves > 0.0) {
+      // S2.5: creste che si rompono (compressione elevata) e schiuma trascinata dal vento nel tempo.
+      float crest = smoothstep(0.35, 0.9, gw.w) * smoothstep(12.0, 40.0, speed);
+      float spume = texture(noiseTex, vec3((P.xz - wdir * time * speed * 3e-4) / 0.09, 0.71 + time * 0.003)).g;
+      // La schiuma diffusa si raccoglie sulle creste e si apre nei cavi: le onde restano leggibili anche col mare in burrasca.
+      float swell = smoothstep(0.15, 0.85, gw.z);
+      foam = clamp(max(foam * (0.45 + 0.8 * spume) * mix(0.35, 1.25, swell), crest * (0.6 + 0.4 * spume)), 0.0, 1.0);
+    }
 
     vec3 col = mix(body + skyRefl * F, vec3(0.6) * light * 0.8, foam) + glint * (1.0 - foam);
     // S2.3: spruzzi marini (strappati dalle creste) solo dove il vento al suolo supera ~33 m/s (uragano):
@@ -598,10 +669,18 @@ export const oceanFragment = /* glsl */ `
     if (s23Vis > 0.5) {
       float spray = smoothstep(33.0, 70.0, speed) * (1.0 - eyeOpen);
       float graze = 1.0 - smoothstep(0.0, 0.5, dot(-d, up));
-      col = mix(col, vec3(0.62, 0.66, 0.7) * light * 0.75, spray * (0.18 + 0.4 * graze));
+      // S2.5: lo spruzzo è trasportato dalle raffiche (tessitura che scorre col vento), non un velo fisso.
+      float sprayMove = 1.0;
+      if (s25Waves > 0.0) {
+        float g = texture(noiseTex, vec3((P.xz - wdir * time * speed * 1.2e-3) / 0.6, 0.29 + time * 0.01)).r;
+        sprayMove = 0.25 + 1.5 * g * g;
+      }
+      col = mix(col, vec3(0.62, 0.66, 0.7) * light * 0.75, clamp(spray * (0.18 + 0.4 * graze) * sprayMove, 0.0, 0.8));
     }
 
     // Prospettiva aerea fino al mare; sotto le nubi la foschia bassa è in ombra.
+    // S2.5: il lampo illumina il mare vicino (riflesso diffuso sotto la nube).
+    col += flashLight(P + up * 1.5) * (0.04 + 0.2 * F);
     vec3 tr;
     vec3 ins = aerial(cameraPos, d, t, mix(direct, 1.0, 0.2), tr);
     outColor = vec4(mix(col * tr + ins, rainColor, rainVeil(t)), 1.0);
@@ -996,6 +1075,12 @@ export const compositeFragment = /* glsl */ `
   uniform int debugMode;
   /** S2.2: lampo (0–1), illumina soprattutto le nubi. */
   uniform float flash;
+  /** S2.5: lampo localizzato. flashNdc = posizione sullo schermo (xy) e validità (z); flashSize = raggio
+   *  apparente (unità NDC verticali); flashGlow = intensità; aspect = larghezza/altezza. */
+  uniform vec3 flashNdc;
+  uniform float flashSize;
+  uniform float flashGlow;
+  uniform float aspect;
   in vec2 vUv;
   out vec4 outColor;
 
@@ -1044,6 +1129,16 @@ export const compositeFragment = /* glsl */ `
       return;
     }
     c += vec3(0.75, 0.82, 1.0) * flash * (0.25 + 1.2 * (1.0 - cl.a));
+    if (flashGlow > 0.0 && flashNdc.z > 0.0) {
+      // S2.5: la nube attorno al canale si accende (luce diffusa, nella composizione: nessun artefatto della
+      // ricostruzione temporale); un alone più debole nell'aria piovosa vicina.
+      vec2 dn = (vUv * 2.0 - 1.0 - flashNdc.xy) * vec2(aspect, 1.0) / max(flashSize, 1e-4);
+      float q = dot(dn, dn);
+      float lit = exp(-q * 1.4) + 0.12 * exp(-q * 0.2);
+      // La luce resta nella nube (la sua tessitura); il mare è illuminato a parte, nel suo passaggio.
+      float cloudLum = dot(cl.rgb, vec3(0.3, 0.5, 0.2)) / max(1.0 - cl.a, 0.05);
+      c += vec3(0.72, 0.8, 1.0) * flashGlow * lit * (1.0 - cl.a) * mix(0.6, 1.3, smoothstep(0.0, 1.5, cloudLum));
+    }
     c = toSrgb(aces(c * exposure));
     float n = fract(52.9829189 * fract(dot(gl_FragCoord.xy + frame * 1.7, vec2(0.06711056, 0.00583715))));
     outColor = vec4(c + (n - 0.5) / 255.0, 1.0);

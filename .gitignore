@@ -17,3 +17,4 @@ data-raw/
 
 # Build di test di STORM FLIGHT (anteprima, mai in produzione)
 dist-storm-test/
+dist-storm-s25-test/
