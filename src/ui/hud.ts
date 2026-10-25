@@ -36,6 +36,8 @@ export interface HudActions {
   onNorth: () => void;
   /** EXPLORE: immagini satellitari originali o volume ricostruito. */
   onRender: (view: RenderView) => void;
+  /** Apre il simulatore CITY FLIGHT. */
+  onCityFlight: () => void;
 }
 
 /** Visualizzazione delle nuvole in EXPLORE. */
@@ -230,7 +232,13 @@ export function createHud(root: HTMLElement, actions: HudActions, event: EventIn
   const live = el('span', 'modes__item modes__item--soon', t.modeLive);
   live.title = t.liveSoon;
   live.append(el('small', undefined, t.soon));
-  modes.append(live);
+  // CITY FLIGHT: voce ben visibile accanto alle modalità del globo (apre il simulatore).
+  const flight = el('button', 'modes__item modes__item--flight');
+  flight.type = 'button';
+  flight.title = t.cityFlightTitle;
+  flight.append(icon('plane'), el('span', undefined, t.cityFlight));
+  flight.addEventListener('click', () => actions.onCityFlight());
+  modes.append(live, flight);
 
   const status = el('span', 'status-pill', t.offline);
   status.setAttribute('role', 'status');

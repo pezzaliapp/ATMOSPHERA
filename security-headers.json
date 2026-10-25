@@ -1,11 +1,12 @@
 {
-  "$comment": "Intestazioni di sicurezza: la CSP va nel meta di index.html (vite.config.ts) e, con le altre, nel file _headers di Cloudflare Pages (scripts/postbuild.mjs).",
+  "$comment": "Intestazioni di sicurezza: la CSP va nel meta di index.html (vite.config.ts) e, con le altre, nel file _headers di Cloudflare Pages (scripts/postbuild.mjs). CITY FLIGHT: frame-src e connect-src ammettono solo le anteprime verificate di APP UNIVERSE (ILCUBO, SYDERA, NOWCAST); NEXUM vieta l'incorporamento e non compare.",
   "csp": [
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self'",
     "img-src 'self' data: blob:",
-    "connect-src 'self'",
+    "connect-src 'self' https://www.alessandropezzali.it/ILCUBO/ https://www.alessandropezzali.it/SYDERA/ https://nowcast.pezzalihub.app",
+    "frame-src https://www.alessandropezzali.it/ILCUBO/ https://www.alessandropezzali.it/SYDERA/ https://nowcast.pezzalihub.app",
     "worker-src 'self'",
     "manifest-src 'self'",
     "object-src 'none'",

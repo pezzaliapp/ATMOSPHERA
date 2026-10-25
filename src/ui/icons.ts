@@ -19,6 +19,7 @@ const PATHS = {
   target: '<circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3"/>',
   north: '<path d="M12 3.5l4 9h-8z" fill="currentColor" stroke="none"/><path d="M12 20.5l-4-8h8z"/>',
   satellite: '<path d="M9.5 9.5l5 5M8 11l5 5M11 8l5 5"/><path d="M4 9l5-5 2.5 2.5-5 5zM12.5 17.5l5-5L20 15l-5 5z"/>',
+  plane: '<path d="M12 3.5c.9 0 1.5 1 1.5 2.4v4.3l7 4.3v1.8l-7-2.1v3.6l2.2 1.7v1.5L12 20l-3.7 1v-1.5l2.2-1.7v-3.6l-7 2.1v-1.8l7-4.3V5.9c0-1.4.6-2.4 1.5-2.4z"/>',
   cube: '<path d="M12 3.5l7.5 4.2v8.6L12 20.5l-7.5-4.2V7.7z"/><path d="M4.5 7.7L12 12l7.5-4.3M12 12v8.5"/>',
   'theme-auto': '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/>',
 } as const;

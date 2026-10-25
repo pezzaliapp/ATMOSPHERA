@@ -44,6 +44,7 @@ export class Engine {
   private last = 0;
   private needsRender = true;
   private running = false;
+  private paused = false;
   private readonly resizeObserver: ResizeObserver;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -124,6 +125,21 @@ export class Engine {
     this.loop();
   }
 
+  /** Sospende il ciclo di rendering (es. mentre è aperto CITY FLIGHT); il contesto resta pronto. */
+  pause(): void {
+    this.paused = true;
+    cancelAnimationFrame(this.frame);
+  }
+
+  resume(): void {
+    if (!this.paused) return;
+    this.paused = false;
+    if (this.running && !document.hidden) {
+      this.needsRender = true;
+      this.loop();
+    }
+  }
+
   dispose(): void {
     this.running = false;
     cancelAnimationFrame(this.frame);
@@ -167,7 +183,7 @@ export class Engine {
   // Nessun rendering a scheda nascosta: risparmio di batteria e GPU.
   private readonly onVisibility = () => {
     if (document.hidden) cancelAnimationFrame(this.frame);
-    else if (this.running) {
+    else if (this.running && !this.paused) {
       this.needsRender = true;
       this.loop();
     }

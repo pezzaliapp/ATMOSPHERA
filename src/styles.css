@@ -1605,3 +1605,107 @@ button {
     padding: 3px;
   }
 }
+
+/* CITY FLIGHT: voce nella barra delle modalità (apre il simulatore, non è una modalità del globo). */
+.modes__item--flight {
+  align-items: center;
+  margin-left: 4px;
+  color: var(--flight-text, #3a1c05);
+  background: linear-gradient(180deg, #ffd29a, #ff9f4a);
+  box-shadow: 0 1px 6px rgb(255 140 50 / 0.3);
+}
+
+.modes__item--flight .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.modes__item--flight:hover {
+  filter: brightness(1.05);
+}
+
+/* Mentre si vola il globo resta in pausa, nascosto sotto il simulatore. */
+body.cf-on #app {
+  display: none;
+}
+
+/* Preparazione del simulatore (mostrata prima che il suo modulo sia scaricato). */
+.cf-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 41;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: #0b0a12;
+  color: #f1eef6;
+  text-align: center;
+  padding: 24px;
+}
+
+.cf-loading b {
+  font-size: 0.95rem;
+  letter-spacing: 0.24em;
+}
+
+.cf-loading p {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: rgb(241 238 246 / 0.8);
+}
+
+.cf-loading button {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 10px 18px;
+  border-radius: 20px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: rgb(255 255 255 / 0.06);
+  color: inherit;
+  cursor: pointer;
+}
+
+.cf-loading__ring {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 0.15);
+  border-top-color: #ffb26b;
+  animation: cf-spin 0.9s linear infinite;
+}
+
+@keyframes cf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-loading__ring {
+    animation: none;
+  }
+}
+
+/* Telefono: la riga delle modalità non ha spazio accanto alla legenda; CITY FLIGHT va su una riga sua,
+   sotto le modalità, e didascalie e avvisi scendono di conseguenza. */
+@media (max-width: 760px) {
+  .modes__item--flight {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    margin-left: 0;
+    padding: 7px 12px;
+    font-size: 0.68rem;
+  }
+
+  .story-caption {
+    top: calc(var(--top) + var(--header-h) + 94px);
+  }
+
+  .toast {
+    top: calc(var(--top) + var(--header-h) + 100px);
+  }
+}

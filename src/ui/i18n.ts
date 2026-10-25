@@ -37,6 +37,11 @@ export const it = {
   modeLive: 'Live',
   soon: 'In sviluppo',
   liveSoon: 'Live — in sviluppo: non ancora disponibile in questa anteprima',
+  cityFlight: 'City Flight',
+  cityFlightTitle: 'CITY FLIGHT — sorvola una città al crepuscolo e apri le app PezzaliAPP (simulazione semplificata)',
+  cityFlightLoading: 'Preparazione della città…',
+  cityFlightUnavailable: 'CITY FLIGHT non è disponibile senza connessione finché non è stato aperto almeno una volta.',
+  cityFlightBack: 'Torna ad ATMOSPHERA',
 
   wind: 'Vento max',
   pressure: 'Pressione',

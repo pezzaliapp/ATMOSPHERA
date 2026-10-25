@@ -1,5 +1,6 @@
 import './styles.css';
 import { loadEvent, type LoadedEvent } from './app/load-event';
+import { CITY_FLIGHT_HASH, createCityFlightEntry } from './app/city-flight-entry';
 import { formatRoute, parseRoute } from './app/route';
 import { createEventScene } from './app/scene';
 import { cameraAt } from './core/camera-path';
@@ -192,6 +193,13 @@ async function start(): Promise<void> {
     engine.invalidate();
   };
 
+  // CITY FLIGHT: il globo si ferma mentre si vola (nessun frame, nessun avanzamento) e riprende al ritorno.
+  const cityFlight = createCityFlightEntry({
+    onEnter: () => engine.pause(),
+    onLeave: () => engine.resume(),
+    routeHash: () => formatRoute({ mode: playback.mode, eventId: manifest.id }),
+  });
+
   const flyToView = (state: CameraState) => {
     rig.flyTo(state, VIEW_FLIGHT_MS);
     engine.invalidate();
@@ -260,6 +268,7 @@ async function start(): Promise<void> {
         rig.flyTo({ heading: 0 }, 900);
         engine.invalidate();
       },
+      onCityFlight: () => cityFlight.enter(),
       onRender: (view) => {
         if (view === 'volume' && !volumeAvailable) return;
         const changed = view !== renderView;
@@ -311,7 +320,7 @@ async function start(): Promise<void> {
 
   // Tastiera (EXPLORE e REPLAY): frecce per ruotare e inclinare, + e − per lo zoom, F per seguire.
   window.addEventListener('keydown', (e) => {
-    if (playback.mode === 'story' || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (cityFlight.active || playback.mode === 'story' || e.altKey || e.ctrlKey || e.metaKey) return;
     const target = e.target as HTMLElement | null;
     if (target && (target.tagName === 'INPUT' || target.isContentEditable)) return;
     const keys: Record<string, () => void> = {
@@ -467,6 +476,8 @@ async function start(): Promise<void> {
 
   engine.start();
   hideLoader();
+  // Collegamento diretto al simulatore (#/city-flight): si apre dopo il globo, che resta in pausa sotto.
+  if (location.hash === CITY_FLIGHT_HASH) cityFlight.openFromAddress();
 
   registerServiceWorker({
     onNeedRefresh: (update) => hud.showToast(t.updateAvailable, { label: t.update, run: update }),

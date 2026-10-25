@@ -66,8 +66,9 @@ export default defineConfig({
         // Shell dell'app, texture 2k e dati dell'evento in precache: offline dal primo avvio.
         globPatterns: ['**/*.{js,css,html,svg,png}', 'textures/*-2k.jpg', 'data/**/*.{json,jpg}'],
         // Fotogrammi della sequenza: cache progressiva (sotto), non tutti al primo avvio.
+        // CITY FLIGHT: scaricato solo quando lo si apre (cache dopo il primo uso, sotto).
         // Le nuvole statiche di E0 non sono più usate dalla scena.
-        globIgnores: ['data/events/*/seq/*.{jpg,png}', 'data/events/*/clouds-*'],
+        globIgnores: ['data/events/*/seq/*.{jpg,png}', 'data/events/*/clouds-*', 'assets/city-flight-*'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: `${BASE}index.html`,
         // I file di licenza (copiati da scripts/postbuild.mjs) si aprono come pagine:
@@ -86,6 +87,15 @@ export default defineConfig({
             options: {
               cacheName: 'atmosphera-frames',
               expiration: { maxEntries: 400 },
+            },
+          },
+          {
+            // CITY FLIGHT: modulo del simulatore, in cache dal primo uso (poi disponibile anche offline).
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && /\/assets\/city-flight-[^/]+\.(js|css)$/.test(url.pathname),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'atmosphera-city-flight',
+              expiration: { maxEntries: 4 },
             },
           },
           {

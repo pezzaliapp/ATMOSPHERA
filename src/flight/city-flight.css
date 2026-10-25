@@ -1,0 +1,17 @@
+/* CITY FLIGHT: livello a schermo intero sopra ATMOSPHERA (il globo resta in pausa sotto, nascosto). */
+.cf-root { position: fixed; inset: 0; z-index: 40; background: #0b0a12; color: #f4f1f8; color-scheme: dark; overflow: hidden; }
+.cf-scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+/* «Torna ad ATMOSPHERA» accanto al titolo. */
+.cf-head { display: flex; align-items: center; gap: 10px; }
+.cf-exit { pointer-events: auto; display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px 0 6px; border-radius: 16px; background: rgb(12 10 20 / 0.55); border: 1px solid rgb(255 255 255 / 0.22); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font: inherit; font-size: 11.5px; font-weight: 700; letter-spacing: 0.14em; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; text-shadow: none; }
+.cf-exit svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cf-exit:hover { border-color: rgb(255 210 160 / 0.7); }
+.cf-root .au-task { top: calc(max(12px, env(safe-area-inset-top)) + 72px); }
+@media (max-width: 600px) {
+  /* Telefono: il comando resta, il titolo lascia spazio alle letture di velocità e quota. */
+  .cf-head > b { display: none; }
+}
+@media (max-width: 720px) {
+  .cf-root .au-task { top: calc(max(12px, env(safe-area-inset-top)) + 112px); }
+}
